@@ -33,15 +33,15 @@ final class GestionTable extends PowerGridComponent
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-            ->add('id')
+//            ->add('id')
             ->add('anio');
     }
 
     public function columns(): array
     {
         return [
-            Column::make('ID', 'id')
-                ->sortable(),
+//            Column::make('ID', 'id')
+//                ->sortable(),
 
             Column::make('Año', 'anio')
                 ->searchable()

@@ -45,7 +45,7 @@ final class CompensacionTable extends PowerGridComponent
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-            ->add('id')
+//            ->add('id')
             ->add('empleado_nombre', fn (Compensacion $model) => $model->empleado->nombre_completo)
             ->add('gestion_anio', fn (Compensacion $model) => $model->gestion->anio)
             ->add('cantidad_horas')
@@ -57,8 +57,8 @@ final class CompensacionTable extends PowerGridComponent
     public function columns(): array
     {
         $columns = [
-            Column::make('ID', 'id')
-                ->sortable(),
+//            Column::make('ID', 'id')
+//                ->sortable(),
         ];
 
         if (! $this->isDetailView) {

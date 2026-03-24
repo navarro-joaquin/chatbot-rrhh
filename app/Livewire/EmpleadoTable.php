@@ -41,7 +41,7 @@ final class EmpleadoTable extends PowerGridComponent
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-            ->add('id')
+//            ->add('id')
             ->add('nombre_completo')
             ->add('carnet_identidad')
             ->add('telefono')
@@ -54,8 +54,8 @@ final class EmpleadoTable extends PowerGridComponent
     public function columns(): array
     {
         return [
-            Column::make('ID', 'id')
-                ->sortable(),
+//            Column::make('ID', 'id')
+//                ->sortable(),
 
             Column::make('Nombre Completo', 'nombre_completo')
                 ->searchable()

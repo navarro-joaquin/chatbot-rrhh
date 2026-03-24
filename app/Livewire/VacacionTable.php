@@ -46,7 +46,7 @@ final class VacacionTable extends PowerGridComponent
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-            ->add('id')
+//            ->add('id')
             ->add('empleado_nombre', fn (Vacacion $model) => $model->empleado->nombre_completo)
             ->add('gestion_anio', fn (Vacacion $model) => $model->gestion->anio)
             ->add('dias_disponibles');
@@ -55,8 +55,8 @@ final class VacacionTable extends PowerGridComponent
     public function columns(): array
     {
         $columns = [
-            Column::make('ID', 'id')
-                ->sortable(),
+//            Column::make('ID', 'id')
+//                ->sortable(),
         ];
 
         // Ocultar columna empleado si es vista de detalle

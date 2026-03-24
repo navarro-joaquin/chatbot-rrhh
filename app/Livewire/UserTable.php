@@ -33,7 +33,7 @@ final class UserTable extends PowerGridComponent
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-            ->add('id')
+//            ->add('id')
             ->add('name')
             ->add('email')
             ->add('created_at_formatted', fn (User $model) => $model->created_at->format('d/m/Y H:i'));
@@ -42,8 +42,8 @@ final class UserTable extends PowerGridComponent
     public function columns(): array
     {
         return [
-            Column::make('ID', 'id')
-                ->sortable(),
+//            Column::make('ID', 'id')
+//                ->sortable(),
 
             Column::make('Nombre', 'name')
                 ->searchable()

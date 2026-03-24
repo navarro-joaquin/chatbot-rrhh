@@ -35,7 +35,7 @@ final class AntiguedadTable extends PowerGridComponent
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-            ->add('id')
+//            ->add('id')
             ->add('anios_desde')
             ->add('anios_hasta')
             ->add('dias_asignados');
@@ -44,8 +44,8 @@ final class AntiguedadTable extends PowerGridComponent
     public function columns(): array
     {
         return [
-            Column::make('ID', 'id')
-                ->sortable(),
+//            Column::make('ID', 'id')
+//                ->sortable(),
 
             Column::make('Desde (años)', 'anios_desde')
                 ->searchable()
