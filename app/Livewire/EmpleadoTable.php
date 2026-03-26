@@ -109,7 +109,7 @@ final class EmpleadoTable extends PowerGridComponent
 
             Button::add('edit')
                 ->slot('Editar')
-                ->class('inline-flex items-center px-3 py-1 bg-zinc-800 text-white rounded-md text-xs font-medium hover:bg-zinc-700 dark:bg-pg-primary-600 dark:text-white')
+                ->class('inline-flex items-center px-3 py-1 bg-zinc-800 text-white rounded-md text-xs font-medium hover:bg-zinc-700 dark:bg-zinc-200 dark:text-zinc-900')
                 ->dispatch('edit', ['id' => $row->id]),
 
             Button::add('delete')

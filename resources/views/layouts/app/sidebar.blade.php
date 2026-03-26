@@ -38,9 +38,13 @@
                         {{ __('Empleados') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="calendar-days" :href="route('vacaciones.index')" :current="request()->routeIs('vacaciones.index')" wire:navigate>
-                        {{ __('Vacaciones') }}
+                       {{ __('Vacaciones') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-check" :href="route('solicitudes-vacaciones.index')" :current="request()->routeIs('solicitudes-vacaciones.index')" wire:navigate>
+                       {{ __('Solicitudes') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clock" :href="route('compensaciones.index')" :current="request()->routeIs('compensaciones.index')" wire:navigate>
+
                         {{ __('Compensaciones') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>

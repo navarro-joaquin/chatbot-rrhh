@@ -41,5 +41,14 @@ new class extends Component
             </div>
             <livewire:compensacion-table :empleado-id="$empleado->id" :is-detail-view="true" />
         </section>
+
+        {{-- Tabla de Solicitudes --}}
+        <section class="space-y-4 mt-4">
+            <div class="flex items-center gap-2">
+                <flux:icon name="clipboard-document-check" class="text-zinc-500" />
+                <flux:heading size="lg">Solicitudes</flux:heading>
+            </div>
+            <livewire:solicitud-vacacion-table :empleado-id="$empleado->id" :is-detail-view="true" />
+        </section>
     </div>
 </div>

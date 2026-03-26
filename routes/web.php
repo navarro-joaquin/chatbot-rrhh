@@ -13,6 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('empleados/{id}', 'empleado-detalle')->name('empleados.show');
     Route::livewire('usuarios', 'users')->name('users.index');
     Route::livewire('vacaciones', 'vacaciones')->name('vacaciones.index');
+    Route::livewire('solicitudes-vacaciones', 'solicitudes-vacaciones')->name('solicitudes-vacaciones.index');
     Route::livewire('compensaciones', 'compensaciones')->name('compensaciones.index');
 });
 
