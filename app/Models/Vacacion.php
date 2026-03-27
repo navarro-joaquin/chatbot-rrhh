@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Vacacion extends Model
+class Vacacion extends BaseModel
 {
     protected $table = 'vacaciones';
     protected $fillable = [

@@ -44,10 +44,13 @@
                        {{ __('Solicitudes') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clock" :href="route('compensaciones.index')" :current="request()->routeIs('compensaciones.index')" wire:navigate>
-
-                        {{ __('Compensaciones') }}
+                       {{ __('Compensaciones') }}
                     </flux:sidebar.item>
-                </flux:sidebar.group>
+                    <flux:sidebar.item icon="finger-print" :href="route('actividades.index')" :current="request()->routeIs('actividades.index')" wire:navigate>
+                       {{ __('Actividad') }}
+                    </flux:sidebar.item>
+                    </flux:sidebar.group>
+
             </flux:sidebar.nav>
 
             <flux:spacer />

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SolicitudVacacion extends Model
+class SolicitudVacacion extends BaseModel
 {
     /** @use HasFactory<\Database\Factories\SolicitudVacacionFactory> */
     use HasFactory;

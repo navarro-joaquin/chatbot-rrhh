@@ -47,7 +47,7 @@ final class EmpleadoTable extends PowerGridComponent
             ->add('telefono')
             ->add('tipo')
             ->add('nro_item')
-            ->add('fecha_contratacion')
+            ->add('fecha_contratacion_formatted', fn (Empleado $model) => $model->fecha_contratacion->format('d/m/Y'))
             ->add('estado', fn (Empleado $model) => $model->estado ? 'Activo' : 'Inactivo');
     }
 
@@ -74,7 +74,7 @@ final class EmpleadoTable extends PowerGridComponent
             Column::make('Nro Item', 'nro_item')
                 ->searchable(),
 
-            Column::make('Fecha Contratacion', 'fecha_contratacion')
+            Column::make('Fecha Contratacion', 'fecha_contratacion_formatted', 'fecha_contratacion')
                 ->searchable(),
 
             Column::make('Estado', 'estado'),

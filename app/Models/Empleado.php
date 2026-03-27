@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Empleado extends Model
+class Empleado extends BaseModel
 {
     /** @use HasFactory<\Database\Factories\EmpleadoFactory> */
     use HasFactory;
@@ -23,6 +23,14 @@ class Empleado extends Model
         'fecha_contratacion',
         'estado',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'fecha_contratacion' => 'date',
+            'estado' => 'boolean',
+        ];
+    }
 
     public function vacaciones(): HasMany
     {

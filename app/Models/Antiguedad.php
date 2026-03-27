@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-
-class Antiguedad extends Model
+class Antiguedad extends BaseModel
 {
     protected $table = 'antiguedades';
+
     protected $fillable = [
         'anios_desde',
         'anios_hasta',
-        'dias_asignados'
+        'dias_asignados',
     ];
 }

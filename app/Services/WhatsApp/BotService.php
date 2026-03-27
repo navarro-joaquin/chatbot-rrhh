@@ -4,12 +4,13 @@ namespace App\Services\WhatsApp;
 
 use App\Models\Compensacion;
 use App\Models\Empleado;
+use App\Models\SolicitudVacacion;
 use App\Models\Vacacion;
 use App\Models\WhatsappConversacion;
 
 class BotService
 {
-    public function __construct(private EvolutionService $evolution) {}
+    public function __construct(private readonly EvolutionService $evolution) {}
 
     public function handle(string $telefono, string $mensaje): void
     {
@@ -61,6 +62,7 @@ class BotService
         return match ($mensaje) {
             '1' => $this->mostrarVacaciones($empleado),
             '2' => $this->mostrarCompensaciones($empleado),
+            '3' => $this->mostrarSolicitudes($empleado),
             default => $this->mostrarMenu($conversacion, $empleado),
         };
     }
@@ -74,7 +76,8 @@ class BotService
             "Item: {$empleado->nro_item}\n\n".
             "Por favor, selecciona una opción:\n".
             "1. Días de vacaciones\n".
-            '2. Horas de compensación';
+            "2. Horas de compensación\n".
+            '3. Vacaciones solicitadas';
     }
 
     private function mostrarVacaciones(Empleado $empleado): string
@@ -115,11 +118,33 @@ class BotService
             $this->menuOpciones();
     }
 
+    private function mostrarSolicitudes(Empleado $empleado): string
+    {
+        $solicitudes = SolicitudVacacion::where('empleado_id', $empleado->id)->get();
+
+        if ($solicitudes->isEmpty()) {
+            return "No tienes registros de solicitudes de vacaciones\n\n".$this->menuOpciones();
+        }
+
+        $detalle = $solicitudes->map(function ($solicitud) {
+            $fecha_inicio = $solicitud->fecha_inicio->format('d/m/Y');
+            $fecha_fin = $solicitud->fecha_fin->format('d/m/Y');
+            $dias_solicitados = number_format($solicitud->dias_solicitados, 1);
+
+            return "* {$fecha_inicio} - {$fecha_fin} por {$dias_solicitados} días.";
+        })->join("\n");
+
+        return "*Solicitudes de vacaciones*\n\n".
+            "{$detalle}\n\n".
+            $this->menuOpciones();
+    }
+
     private function menuOpciones(): string
     {
         return "Selecciona otra opción:\n".
             "1. Días de vacaciones\n".
-            '2. Horas de compensación';
+            "2. Horas de compensación\n".
+            '3. Vacaciones solicitadas';
     }
 
     private function normalizarTelefono(string $telefono): string
