@@ -5,7 +5,6 @@ namespace App\Livewire;
 use App\Models\Empleado;
 use App\Models\SolicitudVacacion;
 use Illuminate\Database\Eloquent\Builder;
-use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\Filter;
 use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
@@ -45,20 +44,20 @@ final class SolicitudVacacionTable extends PowerGridComponent
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-            ->add('id')
+//            ->add('id')
             ->add('empleado_nombre', fn (SolicitudVacacion $model) => $model->empleado->nombre_completo)
             ->add('fecha_inicio_formatted', fn (SolicitudVacacion $model) => $model->fecha_inicio->format('d/m/Y'))
             ->add('fecha_fin_formatted', fn (SolicitudVacacion $model) => $model->fecha_fin->format('d/m/Y'))
             ->add('dias_solicitados')
-            ->add('motivo')
-            ->add('estado');
+            ->add('motivo');
+//            ->add('estado');
     }
 
     public function columns(): array
     {
         return [
-            Column::make('ID', 'id')
-                ->sortable(),
+//            Column::make('ID', 'id')
+//                ->sortable(),
 
             Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
                 ->searchable()
@@ -76,8 +75,8 @@ final class SolicitudVacacionTable extends PowerGridComponent
             Column::make('Motivo', 'motivo')
                 ->searchable(),
 
-            Column::make('Estado', 'estado')
-                ->sortable(),
+//            Column::make('Estado', 'estado')
+//                ->sortable(),
         ];
     }
 

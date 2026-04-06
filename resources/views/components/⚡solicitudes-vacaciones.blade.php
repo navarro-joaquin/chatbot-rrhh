@@ -76,7 +76,8 @@ new class extends Component
 
             <flux:field>
                 <flux:label>Empleado</flux:label>
-                <flux:select wire:model="form.empleado_id" placeholder="Seleccione un empleado...">
+                <flux:select wire:model="form.empleado_id">
+                    <flux:select.option value="">Seleccione un empleado...</flux:select.option>
                     @foreach($empleados as $empleado)
                         <flux:select.option value="{{ $empleado->id }}">{{ $empleado->nombre_completo }}</flux:select.option>
                     @endforeach

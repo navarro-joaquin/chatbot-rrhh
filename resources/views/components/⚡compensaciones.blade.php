@@ -77,7 +77,7 @@ new class extends Component
     </div>
 
     {{-- Banner de Notificación --}}
-    <div x-data="{ show: false, message: '' }" 
+    <div x-data="{ show: false, message: '' }"
          x-on:notify.window="message = $event.detail; show = true; setTimeout(() => show = false, 3000)"
          x-show="show"
          x-transition
@@ -103,7 +103,8 @@ new class extends Component
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <flux:field class="md:col-span-2">
                     <flux:label>Empleado</flux:label>
-                    <flux:select wire:model="form.empleado_id" placeholder="Seleccione un empleado...">
+                    <flux:select wire:model="form.empleado_id">
+                        <flux:select.option value="">Seleccione un empleado...</flux:select.option>
                         @foreach($empleados as $empleado)
                             <flux:select.option value="{{ $empleado->id }}">{{ $empleado->nombre_completo }}</flux:select.option>
                         @endforeach
@@ -113,7 +114,8 @@ new class extends Component
 
                 <flux:field>
                     <flux:label>Gestión</flux:label>
-                    <flux:select wire:model="form.gestion_id" placeholder="Seleccione gestión...">
+                    <flux:select wire:model="form.gestion_id">
+                        <flux:select.option value="">Seleccione una gestión...</flux:select.option>
                         @foreach($gestiones as $gestion)
                             <flux:select.option value="{{ $gestion->id }}">{{ $gestion->anio }}</flux:select.option>
                         @endforeach
