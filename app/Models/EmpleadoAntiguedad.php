@@ -4,36 +4,36 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Compensacion extends BaseModel
+class EmpleadoAntiguedad extends BaseModel
 {
-    protected $table = 'compensaciones';
+    protected $table = 'empleado_antiguedades';
 
     protected $fillable = [
         'empleado_id',
-        'gestion_id',
         'contrato_id',
-        'cantidad_horas',
-        'descripcion',
-        'fecha_registro',
-        'estado',
+        'fecha_base',
+        'anios_reconocidos',
+        'meses_reconocidos',
+        'dias_reconocidos',
+        'origen',
+        'observaciones',
+        'vigente',
     ];
 
     protected function casts(): array
     {
         return [
-            'cantidad_horas' => 'decimal:2',
-            'fecha_registro' => 'date',
+            'fecha_base' => 'date',
+            'anios_reconocidos' => 'integer',
+            'meses_reconocidos' => 'integer',
+            'dias_reconocidos' => 'integer',
+            'vigente' => 'boolean',
         ];
     }
 
     public function empleado(): BelongsTo
     {
         return $this->belongsTo(Empleado::class);
-    }
-
-    public function gestion(): BelongsTo
-    {
-        return $this->belongsTo(Gestion::class);
     }
 
     public function contrato(): BelongsTo

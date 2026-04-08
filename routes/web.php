@@ -16,6 +16,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('solicitudes-vacaciones', 'solicitudes-vacaciones')->name('solicitudes-vacaciones.index');
     Route::livewire('compensaciones', 'compensaciones')->name('compensaciones.index');
     Route::livewire('actividades', 'actividades')->name('actividades.index');
+    Route::livewire('feriados', 'feriados')->name('feriados.index');
 });
 
 

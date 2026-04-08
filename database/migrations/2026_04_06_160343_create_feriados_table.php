@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('empleados', function (Blueprint $table) {
+        Schema::create('feriados', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre_completo');
-            $table->string('carnet_identidad')->unique();
-            $table->string('telefono')->unique();
-            $table->string('correo_electronico')->nullable();
+            $table->string('nombre');
+            $table->date('fecha');
+            $table->foreignId('gestion_id')->constrained('gestiones');
             $table->boolean('estado')->default(true);
             $table->timestamps();
         });
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('empleados');
+        Schema::dropIfExists('feriados');
     }
 };

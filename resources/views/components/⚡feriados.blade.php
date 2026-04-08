@@ -1,13 +1,14 @@
 <?php
 
-use Livewire\Component;
-use App\Models\Empleado;
+use App\Livewire\Forms\FeriadoForm;
+use App\Models\Feriado;
+use App\Models\Gestion;
 use Livewire\Attributes\On;
-use App\Livewire\Forms\EmpleadoForm;
+use Livewire\Component;
 
 new class extends Component
 {
-    public EmpleadoForm $form;
+    public FeriadoForm $form;
     public bool $showModal = false;
     public bool $showDeleteModal = false;
     public string $message = '';
@@ -22,8 +23,8 @@ new class extends Component
     #[On('edit')]
     public function edit(int $id): void
     {
-        $empleado = Empleado::findOrFail($id);
-        $this->form->setEmpleado($empleado);
+        $feriado = Feriado::findOrFail($id);
+        $this->form->setFeriado($feriado);
         $this->showModal = true;
     }
 
@@ -31,34 +32,41 @@ new class extends Component
     {
         $this->form->save();
 
-        $this->message = 'Empleado guardado correctamente.';
+        $this->message = 'Feriado guardado correctamente.';
         $this->showModal = false;
-        $this->dispatch('pg:eventRefresh-empleados-table');
+        $this->dispatch('pg:eventRefresh-feriados-table');
     }
 
     #[On('confirmDelete')]
     public function confirmDelete(int $id): void
     {
-        $this->form->empleado = Empleado::findOrFail($id);
+        $this->form->feriado = Feriado::findOrFail($id);
         $this->showDeleteModal = true;
     }
 
     public function delete(): void
     {
-        $this->form->empleado?->delete();
+        $this->form->feriado?->delete();
         $this->showDeleteModal = false;
         $this->form->reset();
 
-        $this->message = 'Empleado eliminado.';
-        $this->dispatch('pg:eventRefresh-empleados-table');
+        $this->message = 'Feriado eliminado.';
+        $this->dispatch('pg:eventRefresh-feriados-table');
+    }
+
+    public function with(): array
+    {
+        return [
+            'gestiones' => Gestion::orderBy('anio', 'desc')->get(),
+        ];
     }
 };
 ?>
 
 <div class="p-6">
     <div class="flex justify-between items-center mb-6">
-        <flux:heading size="xl">Empleados</flux:heading>
-        <flux:button wire:click="create" variant="primary" icon="plus">Nuevo Empleado</flux:button>
+        <flux:heading size="xl">Feriados</flux:heading>
+        <flux:button wire:click="create" variant="primary" icon="plus">Nuevo Feriado</flux:button>
     </div>
 
     {{-- Banner de Notificación --}}
@@ -75,44 +83,43 @@ new class extends Component
         <div x-init="$dispatch('notify', '{{ $message }}'); $wire.set('message', '')"></div>
     @endif
 
-    <livewire:empleado-table />
+    <livewire:feriado-table />
 
     {{-- Modal Form --}}
-    <flux:modal wire:model="showModal" variant="wide">
+    <flux:modal wire:model="showModal" class="md:w-96">
         <form wire:submit="save" class="space-y-6">
             <div>
-                <flux:heading size="lg">{{ $form->empleado ? 'Editar' : 'Nuevo' }} Empleado</flux:heading>
-                <flux:subheading>Complete la información del empleado.</flux:subheading>
+                <flux:heading size="lg">{{ $form->feriado ? 'Editar' : 'Nuevo' }} Feriado</flux:heading>
+                <flux:subheading>Registre los dias feriados de la gestion.</flux:subheading>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <flux:field>
-                    <flux:label>Nombre Completo</flux:label>
-                    <flux:input wire:model="form.nombre_completo" placeholder="Ej: Juan Pérez" />
-                    <flux:error name="form.nombre_completo" />
+                    <flux:label>Nombre</flux:label>
+                    <flux:input type="text" wire:model="form.nombre" placeholder="Ej. Año Nuevo" />
+                    <flux:error name="form.nombre" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Carnet de Identidad</flux:label>
-                    <flux:input wire:model="form.carnet_identidad" placeholder="Ej: 1234567 LP" />
-                    <flux:error name="form.carnet_identidad" />
+                    <flux:label>Fecha</flux:label>
+                    <flux:input type="date" wire:model="form.fecha" />
+                    <flux:error name="form.fecha" />
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Teléfono</flux:label>
-                    <flux:input wire:model="form.telefono" placeholder="Ej: 70012345" />
-                    <flux:error name="form.telefono" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Correo Electrónico</flux:label>
-                    <flux:input type="email" wire:model="form.correo_electronico" placeholder="ejemplo@correo.com" />
-                    <flux:error name="form.correo_electronico" />
+                    <flux:label>Gestion</flux:label>
+                    <flux:select wire:model="form.gestion_id">
+                        <flux:select.option value="">Seleccione una gestion...</flux:select.option>
+                        @foreach($gestiones as $gestion)
+                            <flux:select.option value="{{ $gestion->id }}">{{ $gestion->anio }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.gestion_id" />
                 </flux:field>
 
                 <div class="flex items-center gap-2 pt-8">
                     <flux:switch wire:model="form.estado" />
-                    <flux:label>Empleado Activo</flux:label>
+                    <flux:label>Feriado activo</flux:label>
                 </div>
             </div>
 
@@ -127,7 +134,7 @@ new class extends Component
     <flux:modal wire:model="showDeleteModal" class="md:w-96">
         <div class="space-y-6">
             <div>
-                <flux:heading size="lg">¿Eliminar empleado?</flux:heading>
+                <flux:heading size="lg">Eliminar feriado?</flux:heading>
                 <flux:subheading>Esta acción no se puede deshacer.</flux:subheading>
             </div>
 

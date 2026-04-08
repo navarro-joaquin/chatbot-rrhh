@@ -93,7 +93,7 @@ new class extends Component
     <livewire:compensacion-table />
 
     {{-- Modal Form --}}
-    <flux:modal wire:model="showModal" class="md:w-[500px]">
+    <flux:modal wire:model="showModal" class="md:w-96">
         <form wire:submit="save" class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ $form->compensacion ? 'Editar' : 'Nueva' }} Compensación</flux:heading>

@@ -26,6 +26,9 @@
                     <flux:sidebar.item icon="scale" :href="route('antiguedades.index')" :current="request()->routeIs('antiguedades')" wire:navigate>
                         {{ __('Antigüedad') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="globe-americas" :href="route('feriados.index')" :current="request()->routeIs('feriados.index')" wire:navigate>
+                        {{ __('Feriados') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="shield-check" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>
                         {{ __('Usuarios') }}
                     </flux:sidebar.item>
