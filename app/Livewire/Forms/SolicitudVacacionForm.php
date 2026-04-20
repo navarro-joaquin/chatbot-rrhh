@@ -37,12 +37,12 @@ class SolicitudVacacionForm extends Form
 
         if ($inicio->gt($fin)) {
             $this->dias_solicitados = 0;
+
             return;
         }
 
-        // diffInWeekdays no incluye el día final en el conteo si son iguales, 
-        // por lo que sumamos un día al final para que sea inclusivo (ej: Lunes a Viernes = 5 días)
-        $this->dias_solicitados = (float) $inicio->diffInWeekdays($fin->copy()->addDay());
+        $service = app(VacacionService::class);
+        $this->dias_solicitados = $service->calcularDiasSolicitados($this->fecha_inicio, $this->fecha_fin);
     }
 
     public function rules(): array
@@ -62,7 +62,7 @@ class SolicitudVacacionForm extends Form
             'empleado_id' => 'empleado',
             'fecha_inicio' => 'fecha de inicio',
             'fecha_fin' => 'fecha de fin',
-            'dias_solicitados' => 'días solicitados',
+            'dias_solicitados' => 'dias solicitados',
             'motivo' => 'motivo',
         ];
     }
@@ -71,12 +71,12 @@ class SolicitudVacacionForm extends Form
     {
         $this->validate();
 
-        // Validar que el empleado tenga suficientes días
         $service = app(VacacionService::class);
         $disponibles = $service->obtenerTotalDiasDisponibles($this->empleado_id);
 
         if ($this->dias_solicitados > $disponibles) {
-            $this->addError('dias_solicitados', "El empleado solo tiene {$disponibles} días disponibles.");
+            $this->addError('dias_solicitados', "El empleado solo tiene {$disponibles} dias disponibles.");
+
             return;
         }
 

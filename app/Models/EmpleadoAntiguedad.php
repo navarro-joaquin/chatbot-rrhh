@@ -11,10 +11,7 @@ class EmpleadoAntiguedad extends BaseModel
     protected $fillable = [
         'empleado_id',
         'contrato_id',
-        'fecha_base',
-        'anios_reconocidos',
-        'meses_reconocidos',
-        'dias_reconocidos',
+        'fecha_reconocida',
         'origen',
         'observaciones',
         'vigente',
@@ -23,10 +20,7 @@ class EmpleadoAntiguedad extends BaseModel
     protected function casts(): array
     {
         return [
-            'fecha_base' => 'date',
-            'anios_reconocidos' => 'integer',
-            'meses_reconocidos' => 'integer',
-            'dias_reconocidos' => 'integer',
+            'fecha_reconocida' => 'date',
             'vigente' => 'boolean',
         ];
     }

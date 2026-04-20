@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Programar el procesamiento automático de vacaciones anuales
 Schedule::command('app:procesar-vacaciones-anuales')->dailyAt('00:00');
+
+// Programar el procesamiento automático de finalizaciones de contrato Eventual
+Schedule::command('app:procesar-fin-contrato')->dailyAt('00:00');

@@ -22,7 +22,9 @@ class BotService
             'mensaje' => $mensaje,
         ]);
 
-        $empleado = Empleado::where('telefono', $telefonoLimpio)
+        $empleado = Empleado::query()
+            ->with('contratoVigente')
+            ->where('telefono', $telefonoLimpio)
             ->where('estado', true)
             ->first();
 
@@ -33,7 +35,7 @@ class BotService
         if (! $empleado) {
             $this->evolution->sendText(
                 $telefono,
-                "Tu número no está registrado en el sistema.\nContacta a Recursos Humanos"
+                "Tu numero no esta registrado en el sistema.\nContacta a Recursos Humanos"
             );
 
             return;
@@ -71,12 +73,14 @@ class BotService
     {
         $conversacion->update(['step' => 'menu']);
 
+        $item = $empleado->contratoVigente?->nro_item ?? 'Sin item vigente';
+
         return "*Bienvenido*\n".
             "Nombre: {$empleado->nombre_completo}\n".
-            "Item: {$empleado->nro_item}\n\n".
-            "Por favor, selecciona una opción:\n".
-            "1. Días de vacaciones\n".
-            "2. Horas de compensación\n".
+            "Item: {$item}\n\n".
+            "Por favor, selecciona una opcion:\n".
+            "1. Dias de vacaciones\n".
+            "2. Horas de compensacion\n".
             '3. Vacaciones solicitadas';
     }
 
@@ -93,15 +97,15 @@ class BotService
         $detalle = $vacaciones->map(function ($vacacion) {
             $dias = number_format($vacacion->dias_disponibles, 1);
 
-            return "* {$vacacion->gestion->anio}: *{$dias} días*";
+            return "* {$vacacion->gestion->anio}: *{$dias} dias*";
         })->join("\n");
 
         $total = number_format($vacaciones->sum('dias_disponibles'), 1);
 
         return "*Vacaciones disponibles*\n\n".
             "{$detalle}\n".
-            "─────────────────\n".
-            "Total: *{$total} días*\n\n".
+            "-----------------\n".
+            "Total: *{$total} dias*\n\n".
             $this->menuOpciones();
     }
 
@@ -113,7 +117,7 @@ class BotService
 
         $horas = number_format($totalHoras, 1);
 
-        return "Horas de compensación:\n".
+        return "Horas de compensacion:\n".
             "Horas disponibles: *{$horas} hrs*\n\n".
             $this->menuOpciones();
     }
@@ -131,7 +135,7 @@ class BotService
             $fecha_fin = $solicitud->fecha_fin->format('d/m/Y');
             $dias_solicitados = number_format($solicitud->dias_solicitados, 1);
 
-            return "* {$fecha_inicio} - {$fecha_fin} por {$dias_solicitados} días.";
+            return "* {$fecha_inicio} - {$fecha_fin} por {$dias_solicitados} dias.";
         })->join("\n");
 
         return "*Solicitudes de vacaciones*\n\n".
@@ -141,9 +145,9 @@ class BotService
 
     private function menuOpciones(): string
     {
-        return "Selecciona otra opción:\n".
-            "1. Días de vacaciones\n".
-            "2. Horas de compensación\n".
+        return "Selecciona otra opcion:\n".
+            "1. Dias de vacaciones\n".
+            "2. Horas de compensacion\n".
             '3. Vacaciones solicitadas';
     }
 

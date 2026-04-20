@@ -1,7 +1,9 @@
 <?php
 
+use App\Livewire\Forms\EmpleadoAntiguedadForm;
 use App\Livewire\Forms\EmpleadoContratoForm;
 use App\Models\Empleado;
+use App\Models\EmpleadoAntiguedad;
 use App\Models\EmpleadoContrato;
 use Carbon\Carbon;
 use Livewire\Attributes\On;
@@ -11,19 +13,31 @@ new class extends Component
 {
     public Empleado $empleado;
     public EmpleadoContratoForm $contratoForm;
+    public EmpleadoAntiguedadForm $antiguedadForm;
     public bool $showContratoModal = false;
     public bool $showDeleteContratoModal = false;
+    public bool $showAntiguedadModal = false;
+    public bool $showDeleteAntiguedadModal = false;
     public string $message = '';
 
     public function mount(int $id): void
     {
         $this->loadEmpleado($id);
-        $this->contratoForm->setEmpleadoId($this->empleado->id);
+        $this->setFormDefaults();
     }
 
     public function loadEmpleado(int $id): void
     {
         $this->empleado = Empleado::with(['contratoVigente', 'antiguedadVigente'])->findOrFail($id);
+    }
+
+    public function setFormDefaults(): void
+    {
+        $this->contratoForm->setEmpleadoId($this->empleado->id);
+        $this->antiguedadForm->setEmpleado(
+            $this->empleado->id,
+            $this->empleado->contratoVigente?->id
+        );
     }
 
     public function createContrato(): void
@@ -49,6 +63,7 @@ new class extends Component
     {
         $this->contratoForm->save();
         $this->loadEmpleado($this->empleado->id);
+        $this->setFormDefaults();
         $this->message = 'Contrato guardado correctamente.';
         $this->showContratoModal = false;
         $this->dispatch('pg:eventRefresh-empleado-contratos-table');
@@ -66,10 +81,59 @@ new class extends Component
         $this->contratoForm->contrato?->delete();
         $this->showDeleteContratoModal = false;
         $this->contratoForm->reset();
-        $this->contratoForm->setEmpleadoId($this->empleado->id);
         $this->loadEmpleado($this->empleado->id);
+        $this->setFormDefaults();
         $this->message = 'Contrato eliminado.';
         $this->dispatch('pg:eventRefresh-empleado-contratos-table');
+    }
+
+    public function createAntiguedad(): void
+    {
+        $this->antiguedadForm->reset();
+        $this->antiguedadForm->origen = 'Contrato';
+        $this->antiguedadForm->vigente = true;
+        $this->antiguedadForm->setEmpleado(
+            $this->empleado->id,
+            $this->empleado->contratoVigente?->id
+        );
+        $this->message = '';
+        $this->showAntiguedadModal = true;
+    }
+
+    #[On('editAntiguedad')]
+    public function editAntiguedad(int $id): void
+    {
+        $antiguedad = EmpleadoAntiguedad::where('empleado_id', $this->empleado->id)->findOrFail($id);
+        $this->antiguedadForm->setAntiguedad($antiguedad);
+        $this->showAntiguedadModal = true;
+    }
+
+    public function saveAntiguedad(): void
+    {
+        $this->antiguedadForm->save();
+        $this->loadEmpleado($this->empleado->id);
+        $this->setFormDefaults();
+        $this->message = 'Antiguedad guardada correctamente.';
+        $this->showAntiguedadModal = false;
+        $this->dispatch('pg:eventRefresh-empleado-antiguedades-table');
+    }
+
+    #[On('confirmDeleteAntiguedad')]
+    public function confirmDeleteAntiguedad(int $id): void
+    {
+        $this->antiguedadForm->antiguedad = EmpleadoAntiguedad::where('empleado_id', $this->empleado->id)->findOrFail($id);
+        $this->showDeleteAntiguedadModal = true;
+    }
+
+    public function deleteAntiguedad(): void
+    {
+        $this->antiguedadForm->antiguedad?->delete();
+        $this->showDeleteAntiguedadModal = false;
+        $this->antiguedadForm->reset();
+        $this->loadEmpleado($this->empleado->id);
+        $this->setFormDefaults();
+        $this->message = 'Antiguedad eliminada.';
+        $this->dispatch('pg:eventRefresh-empleado-antiguedades-table');
     }
 
     public function getAntiguedadVigenteTextoProperty(): string
@@ -95,9 +159,10 @@ new class extends Component
         $antiguedad = $this->empleado->antiguedadVigente;
 
         if ($antiguedad) {
-            $anios += $antiguedad->anios_reconocidos;
-            $meses += $antiguedad->meses_reconocidos;
-            $dias += $antiguedad->dias_reconocidos;
+            $diferencia = $antiguedad->fecha_reconocida->diff($hoy);
+            $anios = $diferencia->y;
+            $meses = $diferencia->m;
+            $dias = $diferencia->d;
         }
 
         $fechaNormalizada = Carbon::create(2000, 1, 1)
@@ -168,10 +233,27 @@ new class extends Component
                 <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 space-y-1">
                     <flux:text class="text-sm text-zinc-500">Antigüedad vigente</flux:text>
                     <flux:heading size="md">{{ $this->antiguedadVigenteTexto }}</flux:heading>
+                    @if ($empleado->antiguedadVigente?->fecha_reconocida)
+                        <flux:text class="text-xs text-zinc-500">
+                            Fecha reconocida: {{ $empleado->antiguedadVigente->fecha_reconocida->format('d/m/Y') }}
+                        </flux:text>
+                    @endif
                 </div>
             </div>
 
             <livewire:empleado-contrato-table :empleado-id="$empleado->id" />
+        </section>
+
+        <section class="space-y-4 mt-4">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <flux:icon name="scale" class="text-zinc-500" />
+                    <flux:heading size="lg">Antigüedades</flux:heading>
+                </div>
+                <flux:button wire:click="createAntiguedad" variant="primary" icon="plus">Nueva Antiguedad</flux:button>
+            </div>
+
+            <livewire:empleado-antiguedad-table :empleado-id="$empleado->id" />
         </section>
 
         <section class="space-y-4 mt-4">
@@ -280,6 +362,77 @@ new class extends Component
                 <flux:spacer />
                 <flux:button wire:click="$set('showDeleteContratoModal', false)" variant="ghost">Cancelar</flux:button>
                 <flux:button wire:click="deleteContrato" variant="danger">Eliminar</flux:button>
+            </div>
+        </div>
+    </flux:modal>
+
+    <flux:modal wire:model="showAntiguedadModal" class="md:w-[650px]">
+        <form wire:submit="saveAntiguedad" class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ $antiguedadForm->antiguedad ? 'Editar' : 'Nueva' }} Antiguedad</flux:heading>
+                <flux:subheading>Registre la antiguedad reconocida del empleado.</flux:subheading>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <flux:field>
+                    <flux:label>Contrato</flux:label>
+                    <flux:select wire:model="antiguedadForm.contrato_id">
+                        <flux:select.option value="">Sin contrato asociado</flux:select.option>
+                        @foreach($empleado->contratos as $contrato)
+                            <flux:select.option value="{{ $contrato->id }}">
+                                {{ $contrato->numero_contrato ?: ($contrato->nro_item ?: 'Contrato #'.$contrato->id) }}
+                            </flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="antiguedadForm.contrato_id" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>Fecha reconocida</flux:label>
+                    <flux:input type="date" wire:model="antiguedadForm.fecha_reconocida" />
+                    <flux:error name="antiguedadForm.fecha_reconocida" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>Origen</flux:label>
+                    <flux:select wire:model="antiguedadForm.origen">
+                        <flux:select.option value="Contrato">Contrato</flux:select.option>
+                        <flux:select.option value="Regularizacion">Regularizacion</flux:select.option>
+                        <flux:select.option value="Resolucion Manual">Resolucion Manual</flux:select.option>
+                    </flux:select>
+                    <flux:error name="antiguedadForm.origen" />
+                </flux:field>
+
+                <flux:field class="md:col-span-2">
+                    <flux:label>Observaciones</flux:label>
+                    <flux:textarea wire:model="antiguedadForm.observaciones" rows="2" />
+                    <flux:error name="antiguedadForm.observaciones" />
+                </flux:field>
+
+                <div class="flex items-center gap-2 pt-8">
+                    <flux:switch wire:model="antiguedadForm.vigente" />
+                    <flux:label>Antiguedad vigente</flux:label>
+                </div>
+            </div>
+
+            <div class="flex">
+                <flux:spacer />
+                <flux:button type="submit" variant="primary">Guardar</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    <flux:modal wire:model="showDeleteAntiguedadModal" class="md:w-96">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">Eliminar antiguedad?</flux:heading>
+                <flux:subheading>Esta accion no se puede deshacer.</flux:subheading>
+            </div>
+
+            <div class="flex gap-2">
+                <flux:spacer />
+                <flux:button wire:click="$set('showDeleteAntiguedadModal', false)" variant="ghost">Cancelar</flux:button>
+                <flux:button wire:click="deleteAntiguedad" variant="danger">Eliminar</flux:button>
             </div>
         </div>
     </flux:modal>

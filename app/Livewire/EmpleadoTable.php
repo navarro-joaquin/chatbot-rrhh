@@ -45,7 +45,7 @@ final class EmpleadoTable extends PowerGridComponent
             ->add('nombre_completo')
             ->add('carnet_identidad')
             ->add('telefono')
-            ->add('estado', fn (Empleado $model) => $model->estado ? 'Activo' : 'Inactivo');
+            ->add('estado_texto', fn (Empleado $model) => $model->estado ? 'Activo' : 'Inactivo');
     }
 
     public function columns(): array
@@ -65,7 +65,7 @@ final class EmpleadoTable extends PowerGridComponent
             Column::make('Teléfono', 'telefono')
                 ->searchable(),
 
-            Column::make('Estado', 'estado'),
+            Column::make('Estado', 'estado_texto', 'estado'),
 
             Column::action('Acciones')
         ];
