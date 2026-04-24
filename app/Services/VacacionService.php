@@ -46,7 +46,7 @@ class VacacionService
      *
      * @return array<int, array{empleado:string, gestion:int, dias:float, origen:string, accion:string}>
      */
-    public function procesarVacacionesAutomaticas(Carbon $fecha): array
+    public function procesarVacacionesAutomaticas(Carbon $fecha, ?callable $debugger = null): array
     {
         $empleados = Empleado::query()
             ->with(['contratoVigente', 'antiguedadVigente'])
@@ -54,13 +54,46 @@ class VacacionService
             ->whereHas('contratoVigente', fn ($query) => $query->where('tipo', 'Planta'))
             ->get();
 
+        $this->debug($debugger, 'Empleados elegibles cargados', [
+            'fecha' => $fecha->toDateString(),
+            'cantidad' => $empleados->count(),
+        ]);
+
         $resultados = [];
 
         foreach ($empleados as $empleado) {
-            $candidatos = $this->resolverCandidatosDelDia($empleado, $fecha);
+            $this->debug($debugger, 'Evaluando empleado', [
+                'empleado_id' => $empleado->id,
+                'empleado' => $empleado->nombre_completo,
+                'contrato_id' => $empleado->contratoVigente?->id,
+                'contrato_tipo' => $empleado->contratoVigente?->tipo,
+                'contrato_fecha_inicio' => $empleado->contratoVigente?->fecha_inicio?->toDateString(),
+                'contrato_vigente' => $empleado->contratoVigente?->es_vigente,
+                'antiguedad_id' => $empleado->antiguedadVigente?->id,
+                'fecha_reconocida' => $empleado->antiguedadVigente?->fecha_reconocida?->toDateString(),
+                'vigencia_desde' => $empleado->antiguedadVigente?->vigencia_desde?->toDateString(),
+                'fecha_registro_reconocimiento' => $empleado->antiguedadVigente?->created_at?->toDateTimeString(),
+            ]);
+
+            $candidatos = $this->resolverCandidatosDelDia($empleado, $fecha, $debugger);
+
+            if (empty($candidatos)) {
+                $this->debug($debugger, 'Empleado sin candidatos para la fecha', [
+                    'empleado_id' => $empleado->id,
+                    'fecha' => $fecha->toDateString(),
+                ]);
+            }
 
             foreach ($candidatos as $candidato) {
-                $resultado = $this->registrarVacacionAutomatica($empleado, $candidato);
+                $this->debug($debugger, 'Candidato generado', [
+                    'empleado_id' => $empleado->id,
+                    'gestion' => $candidato['gestion'],
+                    'dias' => $candidato['dias'],
+                    'origen' => $candidato['origen'],
+                    'anios' => $candidato['anios'],
+                ]);
+
+                $resultado = $this->registrarVacacionAutomatica($empleado, $candidato, $debugger);
 
                 if ($resultado !== null) {
                     $resultados[] = $resultado;
@@ -153,27 +186,31 @@ class VacacionService
     /**
      * @return array<int, array{fecha:Carbon, gestion:int, dias:float, origen:string, anios:int}>
      */
-    private function resolverCandidatosDelDia(Empleado $empleado, Carbon $fecha): array
+    private function resolverCandidatosDelDia(Empleado $empleado, Carbon $fecha, ?callable $debugger = null): array
     {
         $contrato = $empleado->contratoVigente;
 
         if (! $contrato?->fecha_inicio) {
+            $this->debug($debugger, 'Empleado descartado sin contrato vigente con fecha de inicio', [
+                'empleado_id' => $empleado->id,
+            ]);
+
             return [];
         }
 
         $candidatos = collect();
 
-        $candidatoNormal = $this->construirCandidatoNormal($empleado, $fecha);
+        $candidatoNormal = $this->construirCandidatoNormal($empleado, $fecha, $debugger);
         if ($candidatoNormal !== null) {
             $candidatos->push($candidatoNormal);
         }
 
-        $candidatoReconocido = $this->construirCandidatoReconocido($empleado, $fecha);
+        $candidatoReconocido = $this->construirCandidatoReconocido($empleado, $fecha, $debugger);
         if ($candidatoReconocido !== null) {
             $candidatos->push($candidatoReconocido);
         }
 
-        $candidatoProteccion = $this->construirCandidatoProteccion($empleado, $fecha);
+        $candidatoProteccion = $this->construirCandidatoProteccion($empleado, $fecha, $debugger);
         if ($candidatoProteccion !== null) {
             $candidatos->push($candidatoProteccion);
         }
@@ -192,12 +229,18 @@ class VacacionService
     /**
      * @return array{fecha:Carbon, gestion:int, dias:float, origen:string, anios:int}|null
      */
-    private function construirCandidatoNormal(Empleado $empleado, Carbon $fecha): ?array
+    private function construirCandidatoNormal(Empleado $empleado, Carbon $fecha, ?callable $debugger = null): ?array
     {
         $contrato = $empleado->contratoVigente;
         $aniversario = $this->ajustarAniversarioAAnio($contrato->fecha_inicio, (int) $fecha->year);
 
         if (! $aniversario->isSameDay($fecha)) {
+            $this->debug($debugger, 'Contrato descartado por aniversario distinto', [
+                'empleado_id' => $empleado->id,
+                'fecha_evaluada' => $fecha->toDateString(),
+                'aniversario_contrato' => $aniversario->toDateString(),
+            ]);
+
             return null;
         }
 
@@ -207,28 +250,50 @@ class VacacionService
     /**
      * @return array{fecha:Carbon, gestion:int, dias:float, origen:string, anios:int}|null
      */
-    private function construirCandidatoReconocido(Empleado $empleado, Carbon $fecha): ?array
+    private function construirCandidatoReconocido(Empleado $empleado, Carbon $fecha, ?callable $debugger = null): ?array
     {
         $antiguedad = $empleado->antiguedadVigente;
 
         if (! $antiguedad) {
+            $this->debug($debugger, 'Reconocimiento descartado sin antiguedad vigente', [
+                'empleado_id' => $empleado->id,
+            ]);
+
             return null;
         }
 
         $fechaReconocida = $this->obtenerFechaReconocidaBase($antiguedad);
 
         if (! $fechaReconocida) {
+            $this->debug($debugger, 'Reconocimiento descartado sin fecha reconocida', [
+                'empleado_id' => $empleado->id,
+                'antiguedad_id' => $antiguedad->id,
+            ]);
+
             return null;
         }
 
-        $fechaReconocimiento = $antiguedad->created_at?->copy()->startOfDay() ?? $fecha->copy()->startOfDay();
+        $fechaReconocimiento = $this->obtenerFechaVigenciaReconocimiento($antiguedad, $fecha);
         $aniversario = $this->ajustarAniversarioAAnio($fechaReconocida, (int) $fecha->year);
 
         if ($aniversario->lessThan($fechaReconocimiento)) {
+            $this->debug($debugger, 'Reconocimiento descartado por ser previo a la fecha de registro', [
+                'empleado_id' => $empleado->id,
+                'fecha_evaluada' => $fecha->toDateString(),
+                'aniversario_reconocido' => $aniversario->toDateString(),
+                'fecha_registro_reconocimiento' => $fechaReconocimiento->toDateString(),
+            ]);
+
             return null;
         }
 
         if (! $aniversario->isSameDay($fecha)) {
+            $this->debug($debugger, 'Reconocimiento descartado por aniversario distinto', [
+                'empleado_id' => $empleado->id,
+                'fecha_evaluada' => $fecha->toDateString(),
+                'aniversario_reconocido' => $aniversario->toDateString(),
+            ]);
+
             return null;
         }
 
@@ -238,36 +303,62 @@ class VacacionService
     /**
      * @return array{fecha:Carbon, gestion:int, dias:float, origen:string, anios:int}|null
      */
-    private function construirCandidatoProteccion(Empleado $empleado, Carbon $fecha): ?array
+    private function construirCandidatoProteccion(Empleado $empleado, Carbon $fecha, ?callable $debugger = null): ?array
     {
         $contrato = $empleado->contratoVigente;
         $antiguedad = $empleado->antiguedadVigente;
 
         if (! $contrato?->fecha_inicio || ! $antiguedad) {
+            $this->debug($debugger, 'Proteccion descartada por falta de contrato o antiguedad vigente', [
+                'empleado_id' => $empleado->id,
+            ]);
+
             return null;
         }
 
         $aniversarioNormal = $this->ajustarAniversarioAAnio($contrato->fecha_inicio, (int) $fecha->year);
 
         if (! $aniversarioNormal->isSameDay($fecha)) {
+            $this->debug($debugger, 'Proteccion descartada porque no es aniversario de contrato', [
+                'empleado_id' => $empleado->id,
+                'fecha_evaluada' => $fecha->toDateString(),
+                'aniversario_contrato' => $aniversarioNormal->toDateString(),
+            ]);
+
             return null;
         }
 
-        $fechaReconocimiento = $antiguedad->created_at?->copy()->startOfDay();
+        $fechaReconocimiento = $this->obtenerFechaVigenciaReconocimiento($antiguedad, $fecha);
 
         if (! $fechaReconocimiento || $fechaReconocimiento->greaterThan($fecha)) {
+            $this->debug($debugger, 'Proteccion descartada porque el reconocimiento aun no aplica', [
+                'empleado_id' => $empleado->id,
+                'fecha_evaluada' => $fecha->toDateString(),
+                'fecha_registro_reconocimiento' => $fechaReconocimiento?->toDateString(),
+            ]);
+
             return null;
         }
 
         $fechaReconocida = $this->obtenerFechaReconocidaBase($antiguedad);
 
         if (! $fechaReconocida) {
+            $this->debug($debugger, 'Proteccion descartada sin fecha reconocida', [
+                'empleado_id' => $empleado->id,
+            ]);
+
             return null;
         }
 
         $aniversarioReconocido = $this->obtenerPrimerAniversarioDisponible($fechaReconocida, $fechaReconocimiento);
 
         if (! $aniversarioReconocido->greaterThan($aniversarioNormal)) {
+            $this->debug($debugger, 'Proteccion descartada porque el reconocimiento no desplaza la siguiente consolidacion', [
+                'empleado_id' => $empleado->id,
+                'aniversario_reconocido' => $aniversarioReconocido->toDateString(),
+                'aniversario_contrato' => $aniversarioNormal->toDateString(),
+            ]);
+
             return null;
         }
 
@@ -308,6 +399,13 @@ class VacacionService
         return $antiguedad->fecha_reconocida?->copy();
     }
 
+    private function obtenerFechaVigenciaReconocimiento(EmpleadoAntiguedad $antiguedad, Carbon $fechaPorDefecto): CarbonInterface
+    {
+        return $antiguedad->vigencia_desde?->copy()->startOfDay()
+            ?? $antiguedad->created_at?->copy()->startOfDay()
+            ?? $fechaPorDefecto->copy()->startOfDay();
+    }
+
     private function obtenerPrimerAniversarioDisponible(CarbonInterface $inicioServicio, CarbonInterface $fechaReferencia): Carbon
     {
         $aniversario = $this->ajustarAniversarioAAnio($inicioServicio, (int) $fechaReferencia->year);
@@ -331,7 +429,7 @@ class VacacionService
      * @param  array{fecha:Carbon, gestion:int, dias:float, origen:string, anios:int}  $candidato
      * @return array{empleado:string, gestion:int, dias:float, origen:string, accion:string}|null
      */
-    private function registrarVacacionAutomatica(Empleado $empleado, array $candidato): ?array
+    private function registrarVacacionAutomatica(Empleado $empleado, array $candidato, ?callable $debugger = null): ?array
     {
         $gestion = Gestion::firstOrCreate(['anio' => $candidato['gestion']]);
 
@@ -343,11 +441,28 @@ class VacacionService
         $diasActuales = (float) ($vacacion->dias_disponibles ?? 0);
 
         if ($vacacion->exists && $diasActuales >= $candidato['dias']) {
+            $this->debug($debugger, 'Vacacion omitida porque ya existe una igual o mejor', [
+                'empleado_id' => $empleado->id,
+                'gestion' => $gestion->anio,
+                'dias_actuales' => $diasActuales,
+                'dias_candidato' => $candidato['dias'],
+            ]);
+
             return null;
         }
 
-        $vacacion->dias_disponibles = $candidato['dias'];
+        $vacacion->dias_disponibles = $vacacion->exists
+            ? $diasActuales + $candidato['dias']
+            : $candidato['dias'];
         $vacacion->save();
+
+        $this->debug($debugger, 'Vacacion persistida', [
+            'empleado_id' => $empleado->id,
+            'gestion' => $gestion->anio,
+            'dias' => $candidato['dias'],
+            'origen' => $candidato['origen'],
+            'accion' => $vacacion->wasRecentlyCreated ? 'creada' : 'actualizada',
+        ]);
 
         return [
             'empleado' => $empleado->nombre_completo,
@@ -356,5 +471,14 @@ class VacacionService
             'origen' => $candidato['origen'],
             'accion' => $vacacion->wasRecentlyCreated ? 'creada' : 'actualizada',
         ];
+    }
+
+    private function debug(?callable $debugger, string $mensaje, array $contexto = []): void
+    {
+        if ($debugger === null) {
+            return;
+        }
+
+        $debugger($mensaje, $contexto);
     }
 }

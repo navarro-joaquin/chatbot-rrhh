@@ -44,10 +44,13 @@
                        {{ __('Vacaciones') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clipboard-document-check" :href="route('solicitudes-vacaciones.index')" :current="request()->routeIs('solicitudes-vacaciones.index')" wire:navigate>
-                       {{ __('Solicitudes') }}
+                       {{ __('Sol. de Vacación') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="clock" :href="route('compensaciones.index')" :current="request()->routeIs('compensaciones.index')" wire:navigate>
                        {{ __('Compensaciones') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-check" :href="route('solicitudes-compensaciones.index')" :current="request()->routeIs('solicitudes-compensaciones.index')" wire:navigate>
+                       {{ __('Sol. de Compensación') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="finger-print" :href="route('actividades.index')" :current="request()->routeIs('actividades.index')" wire:navigate>
                        {{ __('Actividad') }}
@@ -57,16 +60,6 @@
             </flux:sidebar.nav>
 
             <flux:spacer />
-
-{{--            <flux:sidebar.nav>--}}
-{{--                <flux:sidebar.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">--}}
-{{--                    {{ __('Repository') }}--}}
-{{--                </flux:sidebar.item>--}}
-
-{{--                <flux:sidebar.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">--}}
-{{--                    {{ __('Documentation') }}--}}
-{{--                </flux:sidebar.item>--}}
-{{--            </flux:sidebar.nav>--}}
 
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
         </flux:sidebar>

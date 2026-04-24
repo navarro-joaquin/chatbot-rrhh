@@ -6,6 +6,7 @@ use App\Models\SolicitudVacacion;
 use App\Services\VacacionService;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
+use Carbon\Carbon;
 
 class SolicitudVacacionForm extends Form
 {
@@ -32,8 +33,8 @@ class SolicitudVacacionForm extends Form
             return;
         }
 
-        $inicio = \Carbon\Carbon::parse($this->fecha_inicio);
-        $fin = \Carbon\Carbon::parse($this->fecha_fin);
+        $inicio = Carbon::parse($this->fecha_inicio);
+        $fin = Carbon::parse($this->fecha_fin);
 
         if ($inicio->gt($fin)) {
             $this->dias_solicitados = 0;

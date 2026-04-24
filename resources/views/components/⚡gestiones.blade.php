@@ -62,7 +62,7 @@ new class extends Component
     </div>
 
     {{-- Banner de Notificación --}}
-    <div x-data="{ show: false, message: '' }" 
+    <div x-data="{ show: false, message: '' }"
          x-on:notify.window="message = $event.detail; show = true; setTimeout(() => show = false, 3000)"
          x-show="show"
          x-transition
@@ -85,15 +85,17 @@ new class extends Component
                 <flux:subheading>Ingrese el año de la gestión (2000 - 2099).</flux:subheading>
             </div>
 
-            <flux:field>
-                <flux:label>Año</flux:label>
-                <flux:input type="number" wire:model="form.anio" placeholder="Ej: 2026" min="2000" max="2099" />
-                <flux:error name="form.anio" />
-            </flux:field>
+            <div class="grid grid-cols-1 gap-4">
+                <flux:field>
+                    <flux:label>Año</flux:label>
+                    <flux:input type="number" wire:model="form.anio" placeholder="Ej: 2026" min="2000" max="2099" />
+                    <flux:error name="form.anio" />
+                </flux:field>
 
-            <div class="flex">
-                <flux:spacer />
-                <flux:button type="submit" variant="primary">Guardar</flux:button>
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Guardar</flux:button>
+                </div>
             </div>
         </form>
     </flux:modal>

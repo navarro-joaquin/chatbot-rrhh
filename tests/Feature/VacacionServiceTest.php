@@ -92,8 +92,11 @@ it('calcula dias solicitados excluyendo feriados activos entre semana', function
 });
 
 it('vacaciones, ejemplo real 1, Juan Perez', function () {
+    $gestion2024 = Gestion::create(['anio' => 2024]);
     $gestion2025 = Gestion::create(['anio' => 2025]);
     $gestion2026 = Gestion::create(['anio' => 2026]);
+
+    $service = app(VacacionService::class);
 
     $empleado = crearEmpleadoConContratoPlanta(
         nombre: 'Juan Perez',
@@ -101,16 +104,20 @@ it('vacaciones, ejemplo real 1, Juan Perez', function () {
         fechaInicio: '2023-01-03'
     );
 
+    $consolidacion1 = $service->procesarVacacionesAutomaticas(Carbon::parse('2024-01-03'));
+
     registrarAntiguedadReconocida(
         empleado: $empleado,
         fechaReconocida: '2018-02-08',
         fechaReconocimiento: '2024-02-21 09:00:00'
     );
 
-    $service = app(VacacionService::class);
+    $consolidacion2 = $service->procesarVacacionesAutomaticas(Carbon::parse('2025-02-08'));
+    $consolidacion3 = $service->procesarVacacionesAutomaticas(Carbon::parse('2026-02-08'));
 
-    $consolidacion1 = $service->procesarVacacionesAutomaticas(Carbon::parse('2025-02-08'));
-    $consolidacion2 = $service->procesarVacacionesAutomaticas(Carbon::parse('2026-02-08'));
+    $v2024 = Vacacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2024->id)
+        ->first();
 
     $v2025 = Vacacion::where('empleado_id', $empleado->id)
         ->where('gestion_id', $gestion2025->id)
@@ -120,12 +127,13 @@ it('vacaciones, ejemplo real 1, Juan Perez', function () {
         ->where('gestion_id', $gestion2026->id)
         ->first();
 
-    expect((float) $v2025->dias_disponibles)->toBe(20.0)
+    expect((float) $v2024->dias_disponibles)->toBe(15.0)
+        ->and((float) $v2025->dias_disponibles)->toBe(20.0)
         ->and((float) $v2026->dias_disponibles)->toBe(20.0)
-        ->and($service->obtenerTotalDiasDisponibles($empleado->id))->toBe(40.0);
+        ->and($service->obtenerTotalDiasDisponibles($empleado->id))->toBe(55.0);
 });
 
-it('escenario 1 prioriza el mayor beneficio dentro de la misma gestion', function () {
+it('escenario 1 acumula una nueva consolidacion mas beneficiosa dentro de la misma gestion', function () {
     $empleado = crearEmpleadoConContratoPlanta(
         nombre: 'Escenario 1',
         sufijo: '2001',
@@ -150,7 +158,43 @@ it('escenario 1 prioriza el mayor beneficio dentro de la misma gestion', functio
         ->and($octubre)->toHaveCount(1)
         ->and($octubre[0]['dias'])->toBe(20.0)
         ->and($octubre[0]['accion'])->toBe('actualizada')
-        ->and((float) $vacacion2024->dias_disponibles)->toBe(20.0)
+        ->and((float) $vacacion2024->dias_disponibles)->toBe(35.0)
+        ->and(Vacacion::where('empleado_id', $empleado->id)->count())->toBe(1);
+});
+
+it('acumula la segunda consolidacion aunque exista consumo previo en la misma gestion', function () {
+    $empleado = crearEmpleadoConContratoPlanta(
+        nombre: 'Escenario 1 con uso',
+        sufijo: '2004',
+        fechaInicio: '2023-01-03',
+    );
+
+    registrarAntiguedadReconocida(
+        empleado: $empleado,
+        fechaReconocida: '2019-10-21',
+        fechaReconocimiento: '2024-03-05 09:00:00',
+    );
+
+    $service = app(VacacionService::class);
+
+    $service->procesarVacacionesAutomaticas(Carbon::parse('2024-01-03'));
+
+    $service->registrarSolicitud([
+        'empleado_id' => $empleado->id,
+        'fecha_inicio' => '2024-04-22',
+        'fecha_fin' => '2024-04-26',
+        'dias_solicitados' => 5,
+        'motivo' => 'Caso de prueba con consumo previo',
+    ]);
+
+    $octubre = $service->procesarVacacionesAutomaticas(Carbon::parse('2024-10-21'));
+
+    $vacacion2024 = obtenerVacacionPorGestion($empleado->id, 2024);
+
+    expect($octubre)->toHaveCount(1)
+        ->and($octubre[0]['dias'])->toBe(20.0)
+        ->and($octubre[0]['accion'])->toBe('actualizada')
+        ->and((float) $vacacion2024->dias_disponibles)->toBe(30.0)
         ->and(Vacacion::where('empleado_id', $empleado->id)->count())->toBe(1);
 });
 
@@ -253,6 +297,7 @@ function registrarAntiguedadReconocida(Empleado $empleado, string $fechaReconoci
         'empleado_id' => $empleado->id,
         'contrato_id' => $contrato->id,
         'fecha_reconocida' => $fechaReconocida,
+        'vigencia_desde' => Carbon::parse($fechaReconocimiento)->toDateString(),
         'origen' => 'Regularizacion',
         'observaciones' => 'Caso de prueba',
         'vigente' => true,

@@ -5,7 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Compensacion;
 use App\Models\EmpleadoContrato;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -16,7 +16,8 @@ class ProcesarFinContrato extends Command
      *
      * @var string
      */
-    protected $signature = 'app:procesar-fin-contrato';
+    protected $signature = 'app:procesar-fin-contrato
+        {--fecha= : Fecha a procesar en formato YYYY-MM-DD}';
 
     /**
      * The console command description.
@@ -30,7 +31,9 @@ class ProcesarFinContrato extends Command
      */
     public function handle(): void
     {
-        $today = Carbon::today();
+        $today = $this->option('fecha')
+            ? Carbon::parse((string) $this->option('fecha'))->startOfDay()
+            : Carbon::today();
         $this->info("Procesando finalizaciones de contrato para el {$today->format('d/m/Y')}...");
 
         $contratos = EmpleadoContrato::query()

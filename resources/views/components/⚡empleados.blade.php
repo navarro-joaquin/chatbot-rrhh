@@ -85,7 +85,7 @@ new class extends Component
                 <flux:subheading>Complete la información del empleado.</flux:subheading>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4">
                 <flux:field>
                     <flux:label>Nombre Completo</flux:label>
                     <flux:input wire:model="form.nombre_completo" placeholder="Ej: Juan Pérez" />
@@ -114,11 +114,11 @@ new class extends Component
                     <flux:switch wire:model="form.estado" />
                     <flux:label>Empleado Activo</flux:label>
                 </div>
-            </div>
 
-            <div class="flex">
-                <flux:spacer />
-                <flux:button type="submit" variant="primary">Guardar</flux:button>
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Guardar</flux:button>
+                </div>
             </div>
         </form>
     </flux:modal>

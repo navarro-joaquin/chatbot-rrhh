@@ -38,6 +38,7 @@ final class SolicitudVacacionTable extends PowerGridComponent
     public function datasource(): Builder
     {
         return SolicitudVacacion::query()
+            ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
             ->with(['empleado']);
     }
 

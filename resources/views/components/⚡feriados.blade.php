@@ -93,7 +93,7 @@ new class extends Component
                 <flux:subheading>Registre los dias feriados de la gestion.</flux:subheading>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4">
                 <flux:field>
                     <flux:label>Nombre</flux:label>
                     <flux:input type="text" wire:model="form.nombre" placeholder="Ej. Año Nuevo" />
@@ -121,11 +121,11 @@ new class extends Component
                     <flux:switch wire:model="form.estado" />
                     <flux:label>Feriado activo</flux:label>
                 </div>
-            </div>
 
-            <div class="flex">
-                <flux:spacer />
-                <flux:button type="submit" variant="primary">Guardar</flux:button>
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Guardar</flux:button>
+                </div>
             </div>
         </form>
     </flux:modal>

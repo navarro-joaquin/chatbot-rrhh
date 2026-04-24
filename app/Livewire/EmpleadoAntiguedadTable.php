@@ -46,6 +46,7 @@ final class EmpleadoAntiguedadTable extends PowerGridComponent
     {
         return PowerGrid::fields()
             ->add('fecha_reconocida_formatted', fn (EmpleadoAntiguedad $model) => $model->fecha_reconocida?->format('d/m/Y'))
+            ->add('vigencia_desde_formatted', fn (EmpleadoAntiguedad $model) => $model->vigencia_desde?->format('d/m/Y'))
             ->add('origen')
             ->add('contrato_ref', fn (EmpleadoAntiguedad $model) => $model->contrato?->numero_contrato ?: ($model->contrato?->nro_item ?? '-'))
             ->add('vigente_label', fn (EmpleadoAntiguedad $model) => $model->vigente ? 'Si' : 'No');
@@ -55,6 +56,9 @@ final class EmpleadoAntiguedadTable extends PowerGridComponent
     {
         return [
             Column::make('Fecha reconocida', 'fecha_reconocida_formatted', 'fecha_reconocida')
+                ->sortable(),
+
+            Column::make('Vigencia desde', 'vigencia_desde_formatted', 'vigencia_desde')
                 ->sortable(),
 
             Column::make('Contrato', 'contrato_ref')

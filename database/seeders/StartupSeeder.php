@@ -37,11 +37,11 @@ class StartupSeeder extends Seeder
             ],
             [
                 'anios_desde' => 5,
-                'anios_hasta' => 10,
+                'anios_hasta' => 9,
                 'dias_asignados' => 20,
             ],
             [
-                'anios_desde' => 11,
+                'anios_desde' => 10,
                 'anios_hasta' => 99,
                 'dias_asignados' => 30,
             ],

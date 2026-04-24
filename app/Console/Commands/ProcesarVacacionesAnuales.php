@@ -14,7 +14,9 @@ class ProcesarVacacionesAnuales extends Command
      *
      * @var string
      */
-    protected $signature = 'app:procesar-vacaciones-anuales';
+    protected $signature = 'app:procesar-vacaciones-anuales
+        {--fecha= : Fecha a procesar en formato YYYY-MM-DD}
+        {--debug : Muestra el detalle de evaluacion por empleado}';
 
     /**
      * The console command description.
@@ -28,10 +30,23 @@ class ProcesarVacacionesAnuales extends Command
      */
     public function handle(VacacionService $service): void
     {
-        $today = Carbon::today();
+        $today = $this->option('fecha')
+            ? Carbon::parse((string) $this->option('fecha'))->startOfDay()
+            : Carbon::today();
+        $debug = (bool) $this->option('debug');
+
         $this->info("Procesando vacaciones para el {$today->format('d/m/Y')}...");
 
-        $resultados = $service->procesarVacacionesAutomaticas($today);
+        $resultados = $service->procesarVacacionesAutomaticas(
+            $today,
+            $debug ? function (string $mensaje, array $contexto = []): void {
+                $detalle = empty($contexto)
+                    ? ''
+                    : ' '.json_encode($contexto, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+                $this->line("[debug] {$mensaje}{$detalle}");
+            } : null
+        );
 
         if (empty($resultados)) {
             $this->info('No hay consolidaciones de vacaciones para procesar hoy.');

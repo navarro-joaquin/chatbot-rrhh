@@ -42,7 +42,12 @@ new class extends Component
     public function with(): array
     {
         return [
-            'empleados' => Empleado::where('estado', true)->orderBy('nombre_completo')->get(),
+            'empleados' => Empleado::whereHas('contratos', function($query) {
+                $query->where('estado', 'Vigente')
+                    ->where('tipo', 'Planta');
+            })
+            ->orderBy('nombre_completo', 'asc')
+            ->pluck('nombre_completo', 'id')
         ];
     }
 };
@@ -74,17 +79,18 @@ new class extends Component
                 <flux:subheading>Registre una solicitud de vacación. Los días se descontarán automáticamente de las gestiones más antiguas.</flux:subheading>
             </div>
 
-            <flux:field>
-                <flux:label>Empleado</flux:label>
-                <flux:select wire:model="form.empleado_id">
-                    <flux:select.option value="">Seleccione un empleado...</flux:select.option>
-                    @foreach($empleados as $empleado)
-                        <flux:select.option value="{{ $empleado->id }}">{{ $empleado->nombre_completo }}</flux:select.option>
-                    @endforeach
-                </flux:select>
-                <flux:error name="form.empleado_id" />
-            </flux:field>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4">
+                <flux:field>
+                    <flux:label>Empleado</flux:label>
+                    <flux:select wire:model="form.empleado_id">
+                        <flux:select.option value="">Seleccione un empleado...</flux:select.option>
+                        @foreach($empleados as $id => $nombre)
+                            <flux:select.option value="{{ $id }}">{{ $nombre }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.empleado_id" />
+                </flux:field>
+
                 <flux:field>
                     <flux:label>Fecha Inicio</flux:label>
                     <flux:input type="date" wire:model.live="form.fecha_inicio" />
@@ -96,22 +102,23 @@ new class extends Component
                     <flux:input type="date" wire:model.live="form.fecha_fin" />
                     <flux:error name="form.fecha_fin" />
                 </flux:field>
-            </div>
-            <flux:field>
-                <flux:label>Días a solicitar</flux:label>
-                <flux:input type="number" step="0.5" wire:model="form.dias_solicitados" placeholder="Ej: 5" />
-                <flux:error name="form.dias_solicitados" />
-            </flux:field>
 
-            <flux:field>
-                <flux:label>Motivo / Observaciones</flux:label>
-                <flux:textarea wire:model="form.motivo" placeholder="Opcional..." />
-                <flux:error name="form.motivo" />
-            </flux:field>
+                <flux:field>
+                    <flux:label>Días a solicitar</flux:label>
+                    <flux:input type="number" step="0.5" wire:model="form.dias_solicitados" placeholder="Ej: 5" />
+                    <flux:error name="form.dias_solicitados" />
+                </flux:field>
 
-            <div class="flex">
-                <flux:spacer />
-                <flux:button type="submit" variant="primary">Guardar y Descontar</flux:button>
+                <flux:field>
+                    <flux:label>Motivo / Observaciones</flux:label>
+                    <flux:textarea wire:model="form.motivo" placeholder="Opcional..." />
+                    <flux:error name="form.motivo" />
+                </flux:field>
+
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Guardar y Descontar</flux:button>
+                </div>
             </div>
         </form>
     </flux:modal>

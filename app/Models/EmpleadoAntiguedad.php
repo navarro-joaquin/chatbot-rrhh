@@ -12,6 +12,7 @@ class EmpleadoAntiguedad extends BaseModel
         'empleado_id',
         'contrato_id',
         'fecha_reconocida',
+        'vigencia_desde',
         'origen',
         'observaciones',
         'vigente',
@@ -21,6 +22,7 @@ class EmpleadoAntiguedad extends BaseModel
     {
         return [
             'fecha_reconocida' => 'date',
+            'vigencia_desde' => 'date',
             'vigente' => 'boolean',
         ];
     }

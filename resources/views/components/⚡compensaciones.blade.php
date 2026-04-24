@@ -100,8 +100,8 @@ new class extends Component
                 <flux:subheading>Registre las horas compensatorias asignadas a un empleado.</flux:subheading>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <flux:field class="md:col-span-2">
+            <div class="grid grid-cols-1 gap-4">
+                <flux:field>
                     <flux:label>Empleado</flux:label>
                     <flux:select wire:model="form.empleado_id">
                         <flux:select.option value="">Seleccione un empleado...</flux:select.option>
@@ -150,11 +150,11 @@ new class extends Component
                     <flux:textarea wire:model="form.descripcion" placeholder="Ej: Horas extras por cierre de gestión..." rows="2" />
                     <flux:error name="form.descripcion" />
                 </flux:field>
-            </div>
 
-            <div class="flex">
-                <flux:spacer />
-                <flux:button type="submit" variant="primary">Guardar</flux:button>
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Guardar</flux:button>
+                </div>
             </div>
         </form>
     </flux:modal>

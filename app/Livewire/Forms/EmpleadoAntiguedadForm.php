@@ -21,6 +21,9 @@ class EmpleadoAntiguedadForm extends Form
     public ?string $fecha_reconocida = null;
 
     #[Validate]
+    public ?string $vigencia_desde = null;
+
+    #[Validate]
     public ?string $origen = 'Contrato';
 
     #[Validate]
@@ -35,6 +38,7 @@ class EmpleadoAntiguedadForm extends Form
             'empleado_id' => ['required', 'exists:empleados,id'],
             'contrato_id' => ['nullable', 'exists:empleado_contratos,id'],
             'fecha_reconocida' => ['required', 'date'],
+            'vigencia_desde' => ['required', 'date'],
             'origen' => ['required', Rule::in(['Contrato', 'Regularizacion', 'Resolucion Manual'])],
             'observaciones' => ['nullable', 'string', 'max:255'],
             'vigente' => ['boolean'],
@@ -47,6 +51,7 @@ class EmpleadoAntiguedadForm extends Form
             'empleado_id' => 'empleado',
             'contrato_id' => 'contrato',
             'fecha_reconocida' => 'fecha reconocida',
+            'vigencia_desde' => 'vigencia desde',
             'origen' => 'origen',
             'observaciones' => 'observaciones',
             'vigente' => 'vigente',
@@ -57,6 +62,7 @@ class EmpleadoAntiguedadForm extends Form
     {
         $this->empleado_id = $empleadoId;
         $this->contrato_id = $contratoId;
+        $this->vigencia_desde ??= now()->toDateString();
     }
 
     public function setAntiguedad(EmpleadoAntiguedad $antiguedad): void
@@ -65,6 +71,7 @@ class EmpleadoAntiguedadForm extends Form
         $this->empleado_id = $antiguedad->empleado_id;
         $this->contrato_id = $antiguedad->contrato_id;
         $this->fecha_reconocida = $antiguedad->fecha_reconocida?->format('Y-m-d');
+        $this->vigencia_desde = $antiguedad->vigencia_desde?->format('Y-m-d');
         $this->origen = $antiguedad->origen;
         $this->observaciones = $antiguedad->observaciones;
         $this->vigente = (bool) $antiguedad->vigente;
@@ -90,6 +97,7 @@ class EmpleadoAntiguedadForm extends Form
         }
 
         $this->reset();
+        $this->vigencia_desde = now()->toDateString();
         $this->origen = 'Contrato';
         $this->vigente = true;
     }

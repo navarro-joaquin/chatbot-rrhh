@@ -90,6 +90,7 @@ new class extends Component
     public function createAntiguedad(): void
     {
         $this->antiguedadForm->reset();
+        $this->antiguedadForm->vigencia_desde = now()->toDateString();
         $this->antiguedadForm->origen = 'Contrato';
         $this->antiguedadForm->vigente = true;
         $this->antiguedadForm->setEmpleado(
@@ -238,6 +239,11 @@ new class extends Component
                             Fecha reconocida: {{ $empleado->antiguedadVigente->fecha_reconocida->format('d/m/Y') }}
                         </flux:text>
                     @endif
+                    @if ($empleado->antiguedadVigente?->vigencia_desde)
+                        <flux:text class="text-xs text-zinc-500">
+                            Vigencia desde: {{ $empleado->antiguedadVigente->vigencia_desde->format('d/m/Y') }}
+                        </flux:text>
+                    @endif
                 </div>
             </div>
 
@@ -267,7 +273,7 @@ new class extends Component
         <section class="space-y-4 mt-4">
             <div class="flex items-center gap-2">
                 <flux:icon name="clipboard-document-check" class="text-zinc-500" />
-                <flux:heading size="lg">Solicitudes</flux:heading>
+                <flux:heading size="lg">Solicitudes de Vacación</flux:heading>
             </div>
             <livewire:solicitud-vacacion-table :empleado-id="$empleado->id" :is-detail-view="true" />
         </section>
@@ -278,6 +284,14 @@ new class extends Component
                 <flux:heading size="lg">Compensaciones</flux:heading>
             </div>
             <livewire:compensacion-table :empleado-id="$empleado->id" :is-detail-view="true" />
+        </section>
+
+        <section class="space-y-4 mt-4">
+            <div class="flex items-center gap-2">
+                <flux:icon name="clipboard-document-check" class="text-zinc-500" />
+                <flux:heading size="lg">Solicitudes de Compensación</flux:heading>
+            </div>
+            <livewire:solicitud-vacacion-table :empleado-id="$empleado->id" :is-detail-view="true" />
         </section>
     </div>
 
@@ -391,6 +405,12 @@ new class extends Component
                     <flux:label>Fecha reconocida</flux:label>
                     <flux:input type="date" wire:model="antiguedadForm.fecha_reconocida" />
                     <flux:error name="antiguedadForm.fecha_reconocida" />
+                </flux:field>
+
+                <flux:field>
+                    <flux:label>Vigencia desde</flux:label>
+                    <flux:input type="date" wire:model="antiguedadForm.vigencia_desde" />
+                    <flux:error name="antiguedadForm.vigencia_desde" />
                 </flux:field>
 
                 <flux:field>
