@@ -43,6 +43,11 @@ class Empleado extends BaseModel
         return $this->hasMany(SolicitudVacacion::class);
     }
 
+    public function solicitudesCompensaciones(): HasMany
+    {
+        return $this->hasMany(SolicitudCompensacion::class);
+    }
+
     public function contratos(): HasMany
     {
         return $this->hasMany(EmpleadoContrato::class);

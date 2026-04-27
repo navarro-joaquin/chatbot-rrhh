@@ -291,7 +291,7 @@ new class extends Component
                 <flux:icon name="clipboard-document-check" class="text-zinc-500" />
                 <flux:heading size="lg">Solicitudes de Compensación</flux:heading>
             </div>
-            <livewire:solicitud-vacacion-table :empleado-id="$empleado->id" :is-detail-view="true" />
+            <livewire:solicitud-compensacion-table :empleado-id="$empleado->id" :is-detail-view="true" />
         </section>
     </div>
 
@@ -380,7 +380,7 @@ new class extends Component
         </div>
     </flux:modal>
 
-    <flux:modal wire:model="showAntiguedadModal" class="md:w-[650px]">
+    <flux:modal wire:model="showAntiguedadModal" class="md:w-96">
         <form wire:submit="saveAntiguedad" class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ $antiguedadForm->antiguedad ? 'Editar' : 'Nueva' }} Antiguedad</flux:heading>

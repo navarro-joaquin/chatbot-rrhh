@@ -39,15 +39,15 @@ final class CompensacionTable extends PowerGridComponent
     {
         return Compensacion::query()
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
-            ->with(['empleado', 'gestion']);
+            ->with(['empleado', 'gestion', 'contrato']);
     }
 
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-//            ->add('id')
             ->add('empleado_nombre', fn (Compensacion $model) => $model->empleado->nombre_completo)
             ->add('gestion_anio', fn (Compensacion $model) => $model->gestion->anio)
+            ->add('contrato_ref', fn (Compensacion $model) => $model->contrato?->numero_contrato ?: ($model->contrato?->nro_item ?? '-'))
             ->add('cantidad_horas')
             ->add('descripcion')
             ->add('fecha_registro_formatted', fn (Compensacion $model) => $model->fecha_registro ? date('d/m/Y', strtotime($model->fecha_registro)) : '')
@@ -56,10 +56,7 @@ final class CompensacionTable extends PowerGridComponent
 
     public function columns(): array
     {
-        $columns = [
-//            Column::make('ID', 'id')
-//                ->sortable(),
-        ];
+        $columns = [];
 
         if (! $this->isDetailView) {
             $columns[] = Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
@@ -67,9 +64,12 @@ final class CompensacionTable extends PowerGridComponent
                 ->sortable();
         }
 
-        $columns[] = Column::make('Gestión', 'gestion_anio', 'gestiones.anio')
+        $columns[] = Column::make('Gestion', 'gestion_anio', 'gestiones.anio')
             ->searchable()
             ->sortable();
+
+        $columns[] = Column::make('Contrato', 'contrato_ref')
+            ->searchable();
 
         $columns[] = Column::make('Cant. Horas', 'cantidad_horas')
             ->sortable();
