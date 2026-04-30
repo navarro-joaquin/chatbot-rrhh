@@ -87,6 +87,41 @@ class VacacionService
             'cantidad' => $empleados->count(),
         ]);
 
+        return $this->procesarColeccionDeEmpleados($empleados, $fecha, $debugger);
+    }
+
+    /**
+     * Procesa vacaciones automáticas para un solo empleado en la fecha indicada.
+     *
+     * @return array<int, array{empleado:string, gestion:int, dias:float, origen:string, accion:string}>
+     */
+    public function procesarVacacionesAutomaticasParaEmpleado(int $empleadoId, Carbon $fecha, ?callable $debugger = null): array
+    {
+        $empleado = Empleado::query()
+            ->with(['contratoVigente', 'antiguedadVigente'])
+            ->whereKey($empleadoId)
+            ->where('estado', true)
+            ->whereHas('contratoVigente', fn ($query) => $query->where('tipo', 'Planta'))
+            ->first();
+
+        if (! $empleado) {
+            $this->debug($debugger, 'Empleado no elegible para consolidacion puntual', [
+                'empleado_id' => $empleadoId,
+                'fecha' => $fecha->toDateString(),
+            ]);
+
+            return [];
+        }
+
+        return $this->procesarColeccionDeEmpleados(collect([$empleado]), $fecha, $debugger);
+    }
+
+    /**
+     * @param  Collection<int, Empleado>  $empleados
+     * @return array<int, array{empleado:string, gestion:int, dias:float, origen:string, accion:string}>
+     */
+    private function procesarColeccionDeEmpleados(Collection $empleados, Carbon $fecha, ?callable $debugger = null): array
+    {
         $resultados = [];
 
         foreach ($empleados as $empleado) {
@@ -401,22 +436,10 @@ class VacacionService
             return null;
         }
 
-        $aniversarioNormal = $this->ajustarAniversarioAAnio($contrato->fecha_inicio, (int) $fecha->year);
-
-        if (! $aniversarioNormal->isSameDay($fecha)) {
-            $this->debug($debugger, 'Proteccion descartada porque no es aniversario de contrato', [
-                'empleado_id' => $empleado->id,
-                'fecha_evaluada' => $fecha->toDateString(),
-                'aniversario_contrato' => $aniversarioNormal->toDateString(),
-            ]);
-
-            return null;
-        }
-
         $fechaReconocimiento = $this->obtenerFechaVigenciaReconocimiento($antiguedad, $fecha);
 
-        if (! $fechaReconocimiento || $fechaReconocimiento->greaterThan($fecha)) {
-            $this->debug($debugger, 'Proteccion descartada porque el reconocimiento aun no aplica', [
+        if (! $fechaReconocimiento || ! $fechaReconocimiento->isSameDay($fecha)) {
+            $this->debug($debugger, 'Proteccion descartada porque no es la fecha de reconocimiento vigente', [
                 'empleado_id' => $empleado->id,
                 'fecha_evaluada' => $fecha->toDateString(),
                 'fecha_registro_reconocimiento' => $fechaReconocimiento?->toDateString(),
@@ -424,6 +447,8 @@ class VacacionService
 
             return null;
         }
+
+        $aniversarioNormal = $this->ajustarAniversarioAAnio($contrato->fecha_inicio, (int) $fecha->year);
 
         $fechaReconocida = $this->obtenerFechaReconocidaBase($antiguedad);
 
@@ -447,7 +472,7 @@ class VacacionService
             return null;
         }
 
-        return $this->crearCandidato($fechaReconocida, $aniversarioNormal, 'proteccion');
+        return $this->crearCandidato($fechaReconocida, $fechaReconocimiento, 'proteccion');
     }
 
     /**

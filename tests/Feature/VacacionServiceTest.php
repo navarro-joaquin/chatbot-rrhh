@@ -7,10 +7,12 @@ use App\Models\EmpleadoContrato;
 use App\Models\Feriado;
 use App\Models\Gestion;
 use App\Models\SolicitudVacacion;
+use App\Models\User;
 use App\Models\Vacacion;
 use App\Services\VacacionService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -351,6 +353,7 @@ it('escenario 3 protege el derecho cuando el reconocimiento desplaza la siguient
     $service = app(VacacionService::class);
 
     $noviembre2023 = $service->procesarVacacionesAutomaticas(Carbon::parse('2023-11-03'));
+    $agosto2024 = $service->procesarVacacionesAutomaticas(Carbon::parse('2024-08-21'));
     $noviembre2024 = $service->procesarVacacionesAutomaticas(Carbon::parse('2024-11-03'));
 
     $vacacion2023 = obtenerVacacionPorGestion($empleado->id, 2023);
@@ -358,12 +361,90 @@ it('escenario 3 protege el derecho cuando el reconocimiento desplaza la siguient
 
     expect($noviembre2023)->toHaveCount(1)
         ->and($noviembre2023[0]['dias'])->toBe(15.0)
-        ->and($noviembre2024)->toHaveCount(1)
-        ->and($noviembre2024[0]['origen'])->toBe('proteccion')
-        ->and($noviembre2024[0]['dias'])->toBe(20.0)
+        ->and($agosto2024)->toHaveCount(1)
+        ->and($agosto2024[0]['origen'])->toBe('proteccion')
+        ->and($agosto2024[0]['dias'])->toBe(20.0)
+        ->and($noviembre2024)->toHaveCount(0)
         ->and((float) $vacacion2023->dias_disponibles)->toBe(15.0)
         ->and((float) $vacacion2024->dias_disponibles)->toBe(20.0)
         ->and(Vacacion::where('empleado_id', $empleado->id)->count())->toBe(2);
+});
+
+it('Ejemplo: Escenario3', function() {
+    $gestion2023 = Gestion::create(['anio' => '2023']);
+    $gestion2024 = Gestion::create(['anio' => '2024']);
+    $gestion2025 = Gestion::create(['anio' => '2025']);
+
+    $empleado = crearEmpleadoConContratoPlanta(
+        nombre: 'Juan Perez',
+        sufijo: '2002',
+        fechaInicio: '2022-11-03'
+    );
+
+    registrarAntiguedadReconocida(
+        empleado: $empleado,
+        fechaReconocida: '2018-01-08',
+        fechaReconocimiento: '2024-08-21 09:00:00',
+    );
+
+    $service = app(VacacionService::class);
+
+    $consolidacion1 = $service->procesarVacacionesAutomaticas(Carbon::parse('2023-11-03'));
+    $consolidacion2 = $service->procesarVacacionesAutomaticas(Carbon::parse('2024-08-21'));
+    $consolidacionContrato = $service->procesarVacacionesAutomaticas(Carbon::parse('2024-11-03'));
+    $consolidacion3 = $service->procesarVacacionesAutomaticas(Carbon::parse('2025-01-08'));
+
+    $vacacion2023 = Vacacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2023->id)
+        ->first();
+
+    $vacacion2024 = Vacacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2024->id)
+        ->first();
+
+    $vacacion2025 = Vacacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2025->id)
+        ->first();
+
+    expect((float) $vacacion2023->dias_disponibles)->toBe(15.0)
+        ->and((float) $vacacion2024->dias_disponibles)->toBe(20.0)
+        ->and((float) $vacacion2025->dias_disponibles)->toBe(20.0)
+        ->and($consolidacion2)->toHaveCount(1)
+        ->and($consolidacionContrato)->toHaveCount(0)
+        ->and($service->obtenerTotalDiasDisponibles($empleado->id))->toBe(55.0);
+});
+
+it('procesa la consolidacion protegida al guardar la antiguedad desde frontend', function () {
+    $this->actingAs(User::factory()->create());
+
+    Gestion::create(['anio' => 2023]);
+    $gestion2024 = Gestion::create(['anio' => 2024]);
+
+    $empleado = crearEmpleadoConContratoPlanta(
+        nombre: 'Escenario 3 frontend',
+        sufijo: '2005',
+        fechaInicio: '2022-11-03'
+    );
+
+    app(VacacionService::class)->procesarVacacionesAutomaticas(Carbon::parse('2023-11-03'));
+
+    Livewire::test('empleado-detalle', ['id' => $empleado->id])
+        ->call('createAntiguedad')
+        ->set('antiguedadForm.contrato_id', $empleado->contratoVigente->id)
+        ->set('antiguedadForm.fecha_reconocida', '2018-01-08')
+        ->set('antiguedadForm.vigencia_desde', '2024-08-21')
+        ->set('antiguedadForm.origen', 'Regularizacion')
+        ->set('antiguedadForm.observaciones', 'Alta desde frontend')
+        ->set('antiguedadForm.vigente', true)
+        ->call('saveAntiguedad')
+        ->assertHasNoErrors();
+
+    $vacacion2024 = Vacacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2024->id)
+        ->first();
+
+    expect($vacacion2024)->not->toBeNull()
+        ->and((float) $vacacion2024->dias_disponibles)->toBe(20.0);
 });
 
 function crearEmpleado(string $nombre, string $sufijo): Empleado

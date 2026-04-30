@@ -3,6 +3,9 @@
 namespace App\Livewire\Forms;
 
 use App\Models\EmpleadoAntiguedad;
+use App\Services\VacacionService;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
@@ -83,18 +86,28 @@ class EmpleadoAntiguedadForm extends Form
 
         $data = $this->except('antiguedad');
 
-        if ($this->vigente) {
-            EmpleadoAntiguedad::query()
-                ->where('empleado_id', $this->empleado_id)
-                ->when($this->antiguedad, fn ($query) => $query->whereKeyNot($this->antiguedad->id))
-                ->update(['vigente' => false]);
-        }
+        DB::transaction(function () use ($data): void {
+            if ($this->vigente) {
+                EmpleadoAntiguedad::query()
+                    ->where('empleado_id', $this->empleado_id)
+                    ->when($this->antiguedad, fn ($query) => $query->whereKeyNot($this->antiguedad->id))
+                    ->update(['vigente' => false]);
+            }
 
-        if ($this->antiguedad) {
-            $this->antiguedad->update($data);
-        } else {
-            EmpleadoAntiguedad::create($data);
-        }
+            if ($this->antiguedad) {
+                $this->antiguedad->update($data);
+                $antiguedad = $this->antiguedad->fresh();
+            } else {
+                $antiguedad = EmpleadoAntiguedad::create($data);
+            }
+
+            if ($antiguedad->vigente) {
+                app(VacacionService::class)->procesarVacacionesAutomaticasParaEmpleado(
+                    $antiguedad->empleado_id,
+                    Carbon::parse($antiguedad->vigencia_desde)
+                );
+            }
+        });
 
         $this->reset();
         $this->vigencia_desde = now()->toDateString();
