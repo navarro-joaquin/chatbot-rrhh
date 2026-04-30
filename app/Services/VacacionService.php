@@ -8,6 +8,7 @@ use App\Models\EmpleadoAntiguedad;
 use App\Models\Feriado;
 use App\Models\Gestion;
 use App\Models\SolicitudVacacion;
+use App\Models\SolicitudVacacionDetalle;
 use App\Models\Vacacion;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
@@ -35,9 +36,36 @@ class VacacionService
                 'estado' => 'aprobado',
             ]);
 
-            $this->descontarDias($empleado->id, $diasARestar);
+            $this->descontarDias($empleado->id, $diasARestar, $solicitud);
 
             return $solicitud;
+        });
+    }
+
+    /**
+     * Actualiza una solicitud existente reajustando el saldo de vacaciones.
+     */
+    public function actualizarSolicitud(SolicitudVacacion $solicitud, array $data): SolicitudVacacion
+    {
+        return DB::transaction(function () use ($solicitud, $data) {
+            $solicitud->loadMissing('detalles.vacacion');
+
+            $this->restaurarDiasDeSolicitud($solicitud);
+
+            $empleado = Empleado::findOrFail($data['empleado_id']);
+            $diasARestar = (float) $data['dias_solicitados'];
+
+            $solicitud->update([
+                'empleado_id' => $empleado->id,
+                'fecha_inicio' => $data['fecha_inicio'],
+                'fecha_fin' => $data['fecha_fin'],
+                'dias_solicitados' => $diasARestar,
+                'motivo' => $data['motivo'] ?? null,
+            ]);
+
+            $this->descontarDias($empleado->id, $diasARestar, $solicitud);
+
+            return $solicitud->fresh(['detalles']);
         });
     }
 
@@ -153,7 +181,7 @@ class VacacionService
     /**
      * Descuenta días de vacación empezando por la gestión más antigua.
      */
-    private function descontarDias(int $empleadoId, float $cantidad): void
+    private function descontarDias(int $empleadoId, float $cantidad, ?SolicitudVacacion $solicitud = null): void
     {
         $vacacionesDisponibles = Vacacion::where('empleado_id', $empleadoId)
             ->where('dias_disponibles', '>', 0)
@@ -169,18 +197,75 @@ class VacacionService
                 break;
             }
 
-            if ($vacacion->dias_disponibles >= $restante) {
+            $diasDisponibles = (float) $vacacion->dias_disponibles;
+            $descuento = min($diasDisponibles, $restante);
+
+            if ($descuento <= 0) {
+                continue;
+            }
+
+            if ($diasDisponibles >= $restante) {
                 $vacacion->decrement('dias_disponibles', $restante);
                 $restante = 0;
             } else {
-                $restante -= $vacacion->dias_disponibles;
+                $restante -= $diasDisponibles;
                 $vacacion->update(['dias_disponibles' => 0]);
+            }
+
+            if ($solicitud) {
+                SolicitudVacacionDetalle::create([
+                    'solicitud_vacacion_id' => $solicitud->id,
+                    'vacacion_id' => $vacacion->id,
+                    'dias_descontados' => $descuento,
+                ]);
             }
         }
 
         if ($restante > 0) {
             \Log::warning("El empleado #{$empleadoId} solicitó más días de los disponibles. Quedaron {$restante} días sin descontar.");
         }
+    }
+
+    /**
+     * Restaura los dias descontados por una solicitud antes de recalcularla.
+     */
+    private function restaurarDiasDeSolicitud(SolicitudVacacion $solicitud): void
+    {
+        if ($solicitud->detalles->isNotEmpty()) {
+            foreach ($solicitud->detalles as $detalle) {
+                $detalle->vacacion?->increment('dias_disponibles', (float) $detalle->dias_descontados);
+            }
+
+            $solicitud->detalles()->delete();
+
+            return;
+        }
+
+        $this->restaurarDiasLegacy($solicitud);
+    }
+
+    /**
+     * Fallback para solicitudes anteriores a la bitacora de descuentos.
+     */
+    private function restaurarDiasLegacy(SolicitudVacacion $solicitud): void
+    {
+        $vacacion = Vacacion::query()
+            ->where('empleado_id', $solicitud->empleado_id)
+            ->join('gestiones', 'vacaciones.gestion_id', '=', 'gestiones.id')
+            ->orderBy('gestiones.anio', 'asc')
+            ->select('vacaciones.*')
+            ->first();
+
+        if (! $vacacion) {
+            return;
+        }
+
+        $vacacion->increment('dias_disponibles', (float) $solicitud->dias_solicitados);
+
+        \Log::warning('Solicitud de vacacion restaurada sin detalle historico.', [
+            'solicitud_id' => $solicitud->id,
+            'empleado_id' => $solicitud->empleado_id,
+        ]);
     }
 
     /**

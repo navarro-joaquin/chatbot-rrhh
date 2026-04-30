@@ -6,6 +6,7 @@ use App\Models\EmpleadoAntiguedad;
 use App\Models\EmpleadoContrato;
 use App\Models\Feriado;
 use App\Models\Gestion;
+use App\Models\SolicitudVacacion;
 use App\Models\Vacacion;
 use App\Services\VacacionService;
 use Carbon\Carbon;
@@ -89,6 +90,112 @@ it('calcula dias solicitados excluyendo feriados activos entre semana', function
     $dias = $service->calcularDiasSolicitados('2026-04-27', '2026-05-04');
 
     expect($dias)->toBe(5.0);
+});
+
+it('actualiza una solicitud reduciendo dias y devuelve saldo correctamente', function () {
+    $empleado = crearEmpleado('Editar Menos', '1010');
+
+    $gestion2022 = Gestion::create(['anio' => 2022]);
+    $gestion2023 = Gestion::create(['anio' => 2023]);
+
+    Vacacion::create([
+        'empleado_id' => $empleado->id,
+        'gestion_id' => $gestion2022->id,
+        'dias_disponibles' => 20,
+    ]);
+
+    Vacacion::create([
+        'empleado_id' => $empleado->id,
+        'gestion_id' => $gestion2023->id,
+        'dias_disponibles' => 30,
+    ]);
+
+    $service = app(VacacionService::class);
+
+    $solicitud = $service->registrarSolicitud([
+        'empleado_id' => $empleado->id,
+        'fecha_inicio' => '2026-04-01',
+        'fecha_fin' => '2026-04-25',
+        'dias_solicitados' => 25,
+        'motivo' => 'Solicitud inicial',
+    ]);
+
+    $service->actualizarSolicitud($solicitud, [
+        'empleado_id' => $empleado->id,
+        'fecha_inicio' => '2026-04-01',
+        'fecha_fin' => '2026-04-15',
+        'dias_solicitados' => 15,
+        'motivo' => 'Ajuste menor',
+    ]);
+
+    $v2022 = Vacacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2022->id)
+        ->first();
+
+    $v2023 = Vacacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2023->id)
+        ->first();
+
+    $solicitudActualizada = SolicitudVacacion::with('detalles')->findOrFail($solicitud->id);
+
+    expect((float) $v2022->dias_disponibles)->toBe(5.0)
+        ->and((float) $v2023->dias_disponibles)->toBe(30.0)
+        ->and((float) $solicitudActualizada->dias_solicitados)->toBe(15.0)
+        ->and($solicitudActualizada->detalles)->toHaveCount(1)
+        ->and((float) $solicitudActualizada->detalles->first()->dias_descontados)->toBe(15.0);
+});
+
+it('actualiza una solicitud aumentando dias y descuenta saldo con FIFO', function () {
+    $empleado = crearEmpleado('Editar Mas', '1011');
+
+    $gestion2022 = Gestion::create(['anio' => 2022]);
+    $gestion2023 = Gestion::create(['anio' => 2023]);
+
+    Vacacion::create([
+        'empleado_id' => $empleado->id,
+        'gestion_id' => $gestion2022->id,
+        'dias_disponibles' => 20,
+    ]);
+
+    Vacacion::create([
+        'empleado_id' => $empleado->id,
+        'gestion_id' => $gestion2023->id,
+        'dias_disponibles' => 30,
+    ]);
+
+    $service = app(VacacionService::class);
+
+    $solicitud = $service->registrarSolicitud([
+        'empleado_id' => $empleado->id,
+        'fecha_inicio' => '2026-04-01',
+        'fecha_fin' => '2026-04-10',
+        'dias_solicitados' => 10,
+        'motivo' => 'Solicitud inicial',
+    ]);
+
+    $service->actualizarSolicitud($solicitud, [
+        'empleado_id' => $empleado->id,
+        'fecha_inicio' => '2026-04-01',
+        'fecha_fin' => '2026-04-18',
+        'dias_solicitados' => 25,
+        'motivo' => 'Ajuste mayor',
+    ]);
+
+    $v2022 = Vacacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2022->id)
+        ->first();
+
+    $v2023 = Vacacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2023->id)
+        ->first();
+
+    $solicitudActualizada = SolicitudVacacion::with('detalles')->findOrFail($solicitud->id);
+
+    expect((float) $v2022->dias_disponibles)->toBe(0.0)
+        ->and((float) $v2023->dias_disponibles)->toBe(25.0)
+        ->and((float) $solicitudActualizada->dias_solicitados)->toBe(25.0)
+        ->and($solicitudActualizada->detalles)->toHaveCount(2)
+        ->and((float) $solicitudActualizada->detalles->sum('dias_descontados'))->toBe(25.0);
 });
 
 it('vacaciones, ejemplo real 1, Juan Perez', function () {

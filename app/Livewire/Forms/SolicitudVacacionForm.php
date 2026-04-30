@@ -68,6 +68,16 @@ class SolicitudVacacionForm extends Form
         ];
     }
 
+    public function setSolicitud(SolicitudVacacion $solicitud): void
+    {
+        $this->solicitud = $solicitud;
+        $this->empleado_id = $solicitud->empleado_id;
+        $this->fecha_inicio = $solicitud->fecha_inicio?->toDateString();
+        $this->fecha_fin = $solicitud->fecha_fin?->toDateString();
+        $this->dias_solicitados = (float) $solicitud->dias_solicitados;
+        $this->motivo = $solicitud->motivo;
+    }
+
     public function save(): void
     {
         $this->validate();
@@ -75,19 +85,29 @@ class SolicitudVacacionForm extends Form
         $service = app(VacacionService::class);
         $disponibles = $service->obtenerTotalDiasDisponibles($this->empleado_id);
 
+        if ($this->solicitud && $this->solicitud->empleado_id === $this->empleado_id) {
+            $disponibles += (float) $this->solicitud->dias_solicitados;
+        }
+
         if ($this->dias_solicitados > $disponibles) {
             $this->addError('dias_solicitados', "El empleado solo tiene {$disponibles} dias disponibles.");
 
             return;
         }
 
-        $service->registrarSolicitud([
+        $payload = [
             'empleado_id' => $this->empleado_id,
             'fecha_inicio' => $this->fecha_inicio,
             'fecha_fin' => $this->fecha_fin,
             'dias_solicitados' => $this->dias_solicitados,
             'motivo' => $this->motivo,
-        ]);
+        ];
+
+        if ($this->solicitud) {
+            $service->actualizarSolicitud($this->solicitud, $payload);
+        } else {
+            $service->registrarSolicitud($payload);
+        }
 
         $this->reset();
     }

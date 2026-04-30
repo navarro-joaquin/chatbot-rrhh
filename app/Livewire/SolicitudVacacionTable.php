@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Empleado;
 use App\Models\SolicitudVacacion;
 use Illuminate\Database\Eloquent\Builder;
+use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\Filter;
 use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
@@ -56,9 +57,7 @@ final class SolicitudVacacionTable extends PowerGridComponent
 
     public function columns(): array
     {
-        return [
-            //            Column::make('ID', 'id')
-            //                ->sortable(),
+        $columns = [
 
             Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
                 ->searchable()
@@ -75,10 +74,15 @@ final class SolicitudVacacionTable extends PowerGridComponent
 
             Column::make('Motivo', 'motivo')
                 ->searchable(),
-
-            //            Column::make('Estado', 'estado')
-            //                ->sortable(),
         ];
+
+        $columns[] = Column::action('Acciones')
+            ->hidden(
+                isHidden: $this->isDetailView,
+                isForceHidden: $this->isDetailView
+            );
+
+        return $columns;
     }
 
     public function filters(): array
@@ -88,6 +92,20 @@ final class SolicitudVacacionTable extends PowerGridComponent
                 ->dataSource(Empleado::query()->whereHas('solicitudesVacaciones')->get())
                 ->optionValue('id')
                 ->optionLabel('nombre_completo'),
+        ];
+    }
+
+    public function actions(SolicitudVacacion $row): array
+    {
+        if ($this->isDetailView) {
+            return [];
+        }
+
+        return [
+            Button::add('edit')
+                ->slot('Editar')
+                ->class('inline-flex items-center px-3 py-1 bg-zinc-800 text-white rounded-md text-xs font-medium hover:bg-zinc-700 dark:bg-zinc-200 dark:text-zinc-900')
+                ->dispatch('edit', ['id' => $row->id]),
         ];
     }
 }

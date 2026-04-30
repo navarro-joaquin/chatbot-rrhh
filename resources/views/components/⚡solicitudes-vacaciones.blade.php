@@ -1,9 +1,10 @@
 <?php
 
-use Livewire\Component;
-use App\Models\Empleado;
-use Livewire\Attributes\On;
 use App\Livewire\Forms\SolicitudVacacionForm;
+use App\Models\Empleado;
+use App\Models\SolicitudVacacion;
+use Livewire\Attributes\On;
+use Livewire\Component;
 
 new class extends Component
 {
@@ -18,6 +19,14 @@ new class extends Component
         $this->showModal = true;
     }
 
+    #[On('edit')]
+    public function edit(int $id): void
+    {
+        $this->form->setSolicitud(SolicitudVacacion::findOrFail($id));
+        $this->message = '';
+        $this->showModal = true;
+    }
+
     public function updated($property): void
     {
         if (in_array($property, ['form.fecha_inicio', 'form.fecha_fin'])) {
@@ -27,13 +36,17 @@ new class extends Component
 
     public function save(): void
     {
+        $isEditing = $this->form->solicitud !== null;
+
         $this->form->save();
 
         if ($this->getErrorBag()->has('form.dias_solicitados')) {
             return;
         }
 
-        $this->message = 'Solicitud de vacación registrada y días descontados correctamente.';
+        $this->message = $isEditing
+            ? 'Solicitud de vacacion actualizada y saldo reajustado correctamente.'
+            : 'Solicitud de vacacion registrada y dias descontados correctamente.';
         $this->showModal = false;
         $this->dispatch('pg:eventRefresh-solicitudes-vacaciones-table');
         $this->dispatch('notify', $this->message);
@@ -42,12 +55,12 @@ new class extends Component
     public function with(): array
     {
         return [
-            'empleados' => Empleado::whereHas('contratos', function($query) {
+            'empleados' => Empleado::whereHas('contratos', function ($query) {
                 $query->where('estado', 'Vigente')
                     ->where('tipo', 'Planta');
             })
-            ->orderBy('nombre_completo', 'asc')
-            ->pluck('nombre_completo', 'id')
+                ->orderBy('nombre_completo', 'asc')
+                ->pluck('nombre_completo', 'id'),
         ];
     }
 };
@@ -55,11 +68,10 @@ new class extends Component
 
 <div class="p-6">
     <div class="flex justify-between items-center mb-6">
-        <flux:heading size="xl">Solicitudes de Vacación</flux:heading>
+        <flux:heading size="xl">Solicitudes de Vacacion</flux:heading>
         <flux:button wire:click="create" variant="primary" icon="plus">Registrar Solicitud</flux:button>
     </div>
 
-    {{-- Banner de Notificación --}}
     <div x-data="{ show: false, message: '' }"
          x-on:notify.window="message = $event.detail; show = true; setTimeout(() => show = false, 3000)"
          x-show="show"
@@ -71,12 +83,11 @@ new class extends Component
 
     <livewire:solicitud-vacacion-table />
 
-    {{-- Modal Form --}}
     <flux:modal wire:model="showModal" class="md:w-96">
         <form wire:submit="save" class="space-y-6">
             <div>
-                <flux:heading size="lg">Nueva Solicitud</flux:heading>
-                <flux:subheading>Registre una solicitud de vacación. Los días se descontarán automáticamente de las gestiones más antiguas.</flux:subheading>
+                <flux:heading size="lg">{{ $form->solicitud ? 'Editar' : 'Nueva' }} Solicitud</flux:heading>
+                <flux:subheading>Registre una solicitud de vacacion. Los dias se descuentan siguiendo FIFO y al editar se reajusta el saldo automaticamente.</flux:subheading>
             </div>
 
             <div class="grid grid-cols-1 gap-4">
@@ -104,7 +115,7 @@ new class extends Component
                 </flux:field>
 
                 <flux:field>
-                    <flux:label>Días a solicitar</flux:label>
+                    <flux:label>Dias a solicitar</flux:label>
                     <flux:input type="number" step="0.5" wire:model="form.dias_solicitados" placeholder="Ej: 5" />
                     <flux:error name="form.dias_solicitados" />
                 </flux:field>
@@ -117,7 +128,7 @@ new class extends Component
 
                 <div class="flex">
                     <flux:spacer />
-                    <flux:button type="submit" variant="primary">Guardar y Descontar</flux:button>
+                    <flux:button type="submit" variant="primary">{{ $form->solicitud ? 'Guardar Cambios' : 'Guardar y Descontar' }}</flux:button>
                 </div>
             </div>
         </form>
