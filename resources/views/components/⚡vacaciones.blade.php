@@ -58,7 +58,12 @@ new class extends Component
     public function with(): array
     {
         return [
-            'empleados' => Empleado::where('estado', true)->orderBy('nombre_completo')->get(),
+            'empleados' => Empleado::whereHas('contratos', function($query) {
+                $query->where('estado', 'Vigente')
+                    ->where('tipo', 'Planta');
+            })
+                ->orderBy('nombre_completo', 'asc')
+                ->pluck('nombre_completo', 'id'),
             'gestiones' => Gestion::orderBy('anio', 'desc')->get(),
         ];
     }
@@ -95,37 +100,39 @@ new class extends Component
                 <flux:subheading>Asigne días de vacación a un empleado para una gestión específica.</flux:subheading>
             </div>
 
-            <flux:field>
-                <flux:label>Empleado</flux:label>
-                <flux:select wire:model="form.empleado_id">
-                    <flux:select.option value="">Seleccione un empleado...</flux:select.option>
-                    @foreach($empleados as $empleado)
-                        <flux:select.option value="{{ $empleado->id }}">{{ $empleado->nombre_completo }}</flux:select.option>
-                    @endforeach
-                </flux:select>
-                <flux:error name="form.empleado_id" />
-            </flux:field>
+            <div class="grid grid-cols-1 gap-4">
+                <flux:field>
+                    <flux:label>Empleado</flux:label>
+                    <flux:select wire:model="form.empleado_id">
+                        <flux:select.option value="">Seleccione un empleado...</flux:select.option>
+                        @foreach($empleados as $id => $nombre)
+                            <flux:select.option value="{{ $id }}">{{ $nombre }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.empleado_id" />
+                </flux:field>
 
-            <flux:field>
-                <flux:label>Gestión</flux:label>
-                <flux:select wire:model="form.gestion_id">
-                    <flux:select.option value="">Seleccione la gestión...</flux:select.option>
-                    @foreach($gestiones as $gestion)
-                        <flux:select.option value="{{ $gestion->id }}">{{ $gestion->anio }}</flux:select.option>
-                    @endforeach
-                </flux:select>
-                <flux:error name="form.gestion_id" />
-            </flux:field>
+                <flux:field>
+                    <flux:label>Gestión</flux:label>
+                    <flux:select wire:model="form.gestion_id">
+                        <flux:select.option value="">Seleccione la gestión...</flux:select.option>
+                        @foreach($gestiones as $gestion)
+                            <flux:select.option value="{{ $gestion->id }}">{{ $gestion->anio }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                    <flux:error name="form.gestion_id" />
+                </flux:field>
 
-            <flux:field>
-                <flux:label>Días Disponibles</flux:label>
-                <flux:input type="number" step="0.5" wire:model="form.dias_disponibles" placeholder="Ej: 15" />
-                <flux:error name="form.dias_disponibles" />
-            </flux:field>
+                <flux:field>
+                    <flux:label>Días Disponibles</flux:label>
+                    <flux:input type="number" step="0.5" wire:model="form.dias_disponibles" placeholder="Ej: 15" />
+                    <flux:error name="form.dias_disponibles" />
+                </flux:field>
 
-            <div class="flex">
-                <flux:spacer />
-                <flux:button type="submit" variant="primary">Guardar</flux:button>
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Guardar</flux:button>
+                </div>
             </div>
         </form>
     </flux:modal>

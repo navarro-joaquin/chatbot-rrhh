@@ -4,6 +4,7 @@ namespace App\Services\WhatsApp;
 
 use App\Models\Compensacion;
 use App\Models\Empleado;
+use App\Models\SolicitudCompensacion;
 use App\Models\SolicitudVacacion;
 use App\Models\Vacacion;
 use App\Models\WhatsappConversacion;
@@ -22,7 +23,9 @@ class BotService
             'mensaje' => $mensaje,
         ]);
 
-        $empleado = Empleado::where('telefono', $telefonoLimpio)
+        $empleado = Empleado::query()
+            ->with('contratoVigente')
+            ->where('telefono', $telefonoLimpio)
             ->where('estado', true)
             ->first();
 
@@ -33,7 +36,7 @@ class BotService
         if (! $empleado) {
             $this->evolution->sendText(
                 $telefono,
-                "Tu número no está registrado en el sistema.\nContacta a Recursos Humanos"
+                "Tu numero no esta registrado en el sistema.\nContacta a Recursos Humanos"
             );
 
             return;
@@ -62,7 +65,8 @@ class BotService
         return match ($mensaje) {
             '1' => $this->mostrarVacaciones($empleado),
             '2' => $this->mostrarCompensaciones($empleado),
-            '3' => $this->mostrarSolicitudes($empleado),
+            '3' => $this->mostrarSolicitudesVacacion($empleado),
+            '4' => $this->mostrarSolicitudesCompensacion($empleado),
             default => $this->mostrarMenu($conversacion, $empleado),
         };
     }
@@ -71,13 +75,16 @@ class BotService
     {
         $conversacion->update(['step' => 'menu']);
 
+        $item = $empleado->contratoVigente?->nro_item ?? 'Sin item vigente';
+
         return "*Bienvenido*\n".
             "Nombre: {$empleado->nombre_completo}\n".
-            "Item: {$empleado->nro_item}\n\n".
-            "Por favor, selecciona una opción:\n".
-            "1. Días de vacaciones\n".
-            "2. Horas de compensación\n".
-            '3. Vacaciones solicitadas';
+            "Item: {$item}\n\n".
+            "Por favor, selecciona una opcion:\n".
+            "1. Dias de vacaciones\n".
+            "2. Horas de compensacion\n".
+            "3. Vacaciones solicitadas\n".
+            '4. Compensaciones solicitadas';
     }
 
     private function mostrarVacaciones(Empleado $empleado): string
@@ -93,15 +100,15 @@ class BotService
         $detalle = $vacaciones->map(function ($vacacion) {
             $dias = number_format($vacacion->dias_disponibles, 1);
 
-            return "* {$vacacion->gestion->anio}: *{$dias} días*";
+            return "* {$vacacion->gestion->anio}: *{$dias} dias*";
         })->join("\n");
 
         $total = number_format($vacaciones->sum('dias_disponibles'), 1);
 
         return "*Vacaciones disponibles*\n\n".
             "{$detalle}\n".
-            "─────────────────\n".
-            "Total: *{$total} días*\n\n".
+            "-----------------\n".
+            "Total: *{$total} dias*\n\n".
             $this->menuOpciones();
     }
 
@@ -113,12 +120,12 @@ class BotService
 
         $horas = number_format($totalHoras, 1);
 
-        return "Horas de compensación:\n".
+        return "Horas de compensacion:\n\n".
             "Horas disponibles: *{$horas} hrs*\n\n".
             $this->menuOpciones();
     }
 
-    private function mostrarSolicitudes(Empleado $empleado): string
+    private function mostrarSolicitudesVacacion(Empleado $empleado): string
     {
         $solicitudes = SolicitudVacacion::where('empleado_id', $empleado->id)->get();
 
@@ -131,7 +138,7 @@ class BotService
             $fecha_fin = $solicitud->fecha_fin->format('d/m/Y');
             $dias_solicitados = number_format($solicitud->dias_solicitados, 1);
 
-            return "* {$fecha_inicio} - {$fecha_fin} por {$dias_solicitados} días.";
+            return "* {$fecha_inicio} - {$fecha_fin} por {$dias_solicitados} dias.";
         })->join("\n");
 
         return "*Solicitudes de vacaciones*\n\n".
@@ -139,12 +146,33 @@ class BotService
             $this->menuOpciones();
     }
 
+    private function mostrarSolicitudesCompensacion(Empleado $empleado): string
+    {
+        $solicitudes = SolicitudCompensacion::where('empleado_id', $empleado->id)->get();
+
+        if ($solicitudes->isEmpty()) {
+            return "No tienes registros de solicitudes de compensación\n\n".$this->menuOpciones();
+        }
+
+        $detalle = $solicitudes->map(function ($solicitud) {
+            $fecha_compensacion = $solicitud->fecha_compensacion->format('d/m/Y');
+            $horas_solicitadas = number_format($solicitud->horas_solicitadas, 1);
+
+            return "* {$fecha_compensacion} - {$horas_solicitadas} horas solicitadas.";
+        })->join("\n");
+
+        return "*Solicitudes de compensación*\n\n".
+            "{$detalle}\n\n".
+            $this->menuOpciones();
+    }
+
     private function menuOpciones(): string
     {
-        return "Selecciona otra opción:\n".
-            "1. Días de vacaciones\n".
-            "2. Horas de compensación\n".
-            '3. Vacaciones solicitadas';
+        return "Selecciona otra opcion:\n".
+            "1. Dias de vacaciones\n".
+            "2. Horas de compensacion\n".
+            "3. Vacaciones solicitadas\n".
+            '4. Compensaciones solicitadas';
     }
 
     private function normalizarTelefono(string $telefono): string

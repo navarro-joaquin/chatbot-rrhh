@@ -4,26 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Vacacion extends BaseModel
+class Feriado extends BaseModel
 {
-    protected $table = 'vacaciones';
+    protected $table = 'feriados';
 
     protected $fillable = [
-        'empleado_id',
+        'nombre',
+        'fecha',
         'gestion_id',
-        'dias_disponibles',
+        'estado',
     ];
 
     protected function casts(): array
     {
         return [
-            'dias_disponibles' => 'decimal:1',
+            'fecha' => 'date',
+            'estado' => 'boolean',
         ];
-    }
-
-    public function empleado(): BelongsTo
-    {
-        return $this->belongsTo(Empleado::class);
     }
 
     public function gestion(): BelongsTo

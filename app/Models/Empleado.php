@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Empleado extends BaseModel
 {
@@ -18,16 +18,12 @@ class Empleado extends BaseModel
         'carnet_identidad',
         'telefono',
         'correo_electronico',
-        'nro_item',
-        'tipo',
-        'fecha_contratacion',
         'estado',
     ];
 
     protected function casts(): array
     {
         return [
-            'fecha_contratacion' => 'date',
             'estado' => 'boolean',
         ];
     }
@@ -40,5 +36,40 @@ class Empleado extends BaseModel
     public function compensaciones(): HasMany
     {
         return $this->hasMany(Compensacion::class);
+    }
+
+    public function solicitudesVacaciones(): HasMany
+    {
+        return $this->hasMany(SolicitudVacacion::class);
+    }
+
+    public function solicitudesCompensaciones(): HasMany
+    {
+        return $this->hasMany(SolicitudCompensacion::class);
+    }
+
+    public function contratos(): HasMany
+    {
+        return $this->hasMany(EmpleadoContrato::class);
+    }
+
+    public function contratoVigente(): HasOne
+    {
+        return $this->hasOne(EmpleadoContrato::class)->where('es_vigente', true);
+    }
+
+    public function antiguedades(): HasMany
+    {
+        return $this->hasMany(EmpleadoAntiguedad::class);
+    }
+
+    public function antiguedadVigente(): HasOne
+    {
+        return $this->hasOne(EmpleadoAntiguedad::class)->where('vigente', true);
+    }
+
+    public function whatsappConversacion(): HasOne
+    {
+        return $this->hasOne(WhatsappConversacion::class);
     }
 }

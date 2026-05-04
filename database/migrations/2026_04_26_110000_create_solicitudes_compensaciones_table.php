@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('compensaciones', function (Blueprint $table) {
+        Schema::create('solicitudes_compensaciones', function (Blueprint $table) {
             $table->id();
             $table->foreignId('empleado_id')->constrained('empleados')->onDelete('cascade');
-            $table->foreignId('gestion_id')->constrained('gestiones')->onDelete('cascade');
-            $table->decimal('cantidad_horas', 10, 2)->default(0);
-            $table->string('descripcion')->nullable();
-            $table->date('fecha_registro')->nullable();
-            $table->enum('estado', ['disponible', 'utilizado', 'vencido'])->default('disponible');
+            $table->date('fecha_compensacion');
+            $table->decimal('horas_solicitadas', 8, 2);
+            $table->string('motivo')->nullable();
+            $table->enum('estado', ['aprobado', 'cancelado'])->default('aprobado');
             $table->timestamps();
         });
     }
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('compensaciones');
+        Schema::dropIfExists('solicitudes_compensaciones');
     }
 };

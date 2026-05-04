@@ -6,6 +6,7 @@ use App\Models\SolicitudVacacion;
 use App\Services\VacacionService;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
+use Carbon\Carbon;
 
 class SolicitudVacacionForm extends Form
 {
@@ -32,17 +33,17 @@ class SolicitudVacacionForm extends Form
             return;
         }
 
-        $inicio = \Carbon\Carbon::parse($this->fecha_inicio);
-        $fin = \Carbon\Carbon::parse($this->fecha_fin);
+        $inicio = Carbon::parse($this->fecha_inicio);
+        $fin = Carbon::parse($this->fecha_fin);
 
         if ($inicio->gt($fin)) {
             $this->dias_solicitados = 0;
+
             return;
         }
 
-        // diffInWeekdays no incluye el día final en el conteo si son iguales, 
-        // por lo que sumamos un día al final para que sea inclusivo (ej: Lunes a Viernes = 5 días)
-        $this->dias_solicitados = (float) $inicio->diffInWeekdays($fin->copy()->addDay());
+        $service = app(VacacionService::class);
+        $this->dias_solicitados = $service->calcularDiasSolicitados($this->fecha_inicio, $this->fecha_fin);
     }
 
     public function rules(): array
@@ -62,31 +63,51 @@ class SolicitudVacacionForm extends Form
             'empleado_id' => 'empleado',
             'fecha_inicio' => 'fecha de inicio',
             'fecha_fin' => 'fecha de fin',
-            'dias_solicitados' => 'días solicitados',
+            'dias_solicitados' => 'dias solicitados',
             'motivo' => 'motivo',
         ];
+    }
+
+    public function setSolicitud(SolicitudVacacion $solicitud): void
+    {
+        $this->solicitud = $solicitud;
+        $this->empleado_id = $solicitud->empleado_id;
+        $this->fecha_inicio = $solicitud->fecha_inicio?->toDateString();
+        $this->fecha_fin = $solicitud->fecha_fin?->toDateString();
+        $this->dias_solicitados = (float) $solicitud->dias_solicitados;
+        $this->motivo = $solicitud->motivo;
     }
 
     public function save(): void
     {
         $this->validate();
 
-        // Validar que el empleado tenga suficientes días
         $service = app(VacacionService::class);
         $disponibles = $service->obtenerTotalDiasDisponibles($this->empleado_id);
 
+        if ($this->solicitud && $this->solicitud->empleado_id === $this->empleado_id) {
+            $disponibles += (float) $this->solicitud->dias_solicitados;
+        }
+
         if ($this->dias_solicitados > $disponibles) {
-            $this->addError('dias_solicitados', "El empleado solo tiene {$disponibles} días disponibles.");
+            $this->addError('dias_solicitados', "El empleado solo tiene {$disponibles} dias disponibles.");
+
             return;
         }
 
-        $service->registrarSolicitud([
+        $payload = [
             'empleado_id' => $this->empleado_id,
             'fecha_inicio' => $this->fecha_inicio,
             'fecha_fin' => $this->fecha_fin,
             'dias_solicitados' => $this->dias_solicitados,
             'motivo' => $this->motivo,
-        ]);
+        ];
+
+        if ($this->solicitud) {
+            $service->actualizarSolicitud($this->solicitud, $payload);
+        } else {
+            $service->registrarSolicitud($payload);
+        }
 
         $this->reset();
     }

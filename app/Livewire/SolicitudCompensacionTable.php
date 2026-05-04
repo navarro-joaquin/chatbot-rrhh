@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Empleado;
-use App\Models\SolicitudVacacion;
+use App\Models\SolicitudCompensacion;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
@@ -12,9 +12,9 @@ use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 use PowerComponents\LivewirePowerGrid\PowerGridFields;
 
-final class SolicitudVacacionTable extends PowerGridComponent
+final class SolicitudCompensacionTable extends PowerGridComponent
 {
-    public string $tableName = 'solicitudes-vacaciones-table';
+    public string $tableName = 'solicitudes-compensaciones-table';
 
     public ?int $empleadoId = null;
 
@@ -38,7 +38,7 @@ final class SolicitudVacacionTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return SolicitudVacacion::query()
+        return SolicitudCompensacion::query()
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
             ->with(['empleado']);
     }
@@ -46,34 +46,31 @@ final class SolicitudVacacionTable extends PowerGridComponent
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
-//            ->add('id')
-            ->add('empleado_nombre', fn (SolicitudVacacion $model) => $model->empleado->nombre_completo)
-            ->add('fecha_inicio_formatted', fn (SolicitudVacacion $model) => $model->fecha_inicio->format('d/m/Y'))
-            ->add('fecha_fin_formatted', fn (SolicitudVacacion $model) => $model->fecha_fin->format('d/m/Y'))
-            ->add('dias_solicitados')
-            ->add('motivo');
-        // ->add('estado');
+            ->add('empleado_nombre', fn (SolicitudCompensacion $model) => $model->empleado->nombre_completo)
+            ->add('fecha_compensacion_formatted', fn (SolicitudCompensacion $model) => $model->fecha_compensacion->format('d/m/Y'))
+            ->add('horas_solicitadas')
+            ->add('motivo')
+            ->add('estado_label', fn (SolicitudCompensacion $model) => ucfirst($model->estado));
     }
 
     public function columns(): array
     {
         $columns = [
-
             Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
                 ->searchable()
                 ->sortable(),
 
-            Column::make('Desde', 'fecha_inicio_formatted', 'fecha_inicio')
+            Column::make('Fecha', 'fecha_compensacion_formatted', 'fecha_compensacion')
                 ->sortable(),
 
-            Column::make('Hasta', 'fecha_fin_formatted', 'fecha_fin')
-                ->sortable(),
-
-            Column::make('Días', 'dias_solicitados')
+            Column::make('Horas', 'horas_solicitadas')
                 ->sortable(),
 
             Column::make('Motivo', 'motivo')
                 ->searchable(),
+
+            Column::make('Estado', 'estado_label', 'estado')
+                ->sortable(),
         ];
 
         $columns[] = Column::action('Acciones')
@@ -89,13 +86,20 @@ final class SolicitudVacacionTable extends PowerGridComponent
     {
         return [
             Filter::select('empleado_nombre', 'empleado_id')
-                ->dataSource(Empleado::query()->whereHas('solicitudesVacaciones')->get())
+                ->dataSource(Empleado::all())
                 ->optionValue('id')
                 ->optionLabel('nombre_completo'),
+            Filter::select('estado', 'estado')
+                ->dataSource([
+                    ['label' => 'Aprobado', 'value' => 'aprobado'],
+                    ['label' => 'Cancelado', 'value' => 'cancelado'],
+                ])
+                ->optionValue('value')
+                ->optionLabel('label'),
         ];
     }
 
-    public function actions(SolicitudVacacion $row): array
+    public function actions(SolicitudCompensacion $row): array
     {
         if ($this->isDetailView) {
             return [];

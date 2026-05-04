@@ -85,7 +85,7 @@ new class extends Component
                 <flux:subheading>Complete la información del empleado.</flux:subheading>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4">
                 <flux:field>
                     <flux:label>Nombre Completo</flux:label>
                     <flux:input wire:model="form.nombre_completo" placeholder="Ej: Juan Pérez" />
@@ -110,36 +110,15 @@ new class extends Component
                     <flux:error name="form.correo_electronico" />
                 </flux:field>
 
-                <flux:field>
-                    <flux:label>Nro. Item</flux:label>
-                    <flux:input wire:model="form.nro_item" placeholder="Ej: 601" />
-                    <flux:error name="form.nro_item" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Tipo</flux:label>
-                    <flux:select wire:model="form.tipo">
-                        <flux:select.option value="Planta">Planta</flux:select.option>
-                        <flux:select.option value="Eventual">Eventual</flux:select.option>
-                    </flux:select>
-                    <flux:error name="form.tipo" />
-                </flux:field>
-
-                <flux:field>
-                    <flux:label>Fecha de Contratación</flux:label>
-                    <flux:input type="date" wire:model="form.fecha_contratacion" />
-                    <flux:error name="form.fecha_contratacion" />
-                </flux:field>
-
                 <div class="flex items-center gap-2 pt-8">
                     <flux:switch wire:model="form.estado" />
                     <flux:label>Empleado Activo</flux:label>
                 </div>
-            </div>
 
-            <div class="flex">
-                <flux:spacer />
-                <flux:button type="submit" variant="primary">Guardar</flux:button>
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Guardar</flux:button>
+                </div>
             </div>
         </form>
     </flux:modal>

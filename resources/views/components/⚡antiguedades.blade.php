@@ -85,27 +85,29 @@ new class extends Component
                 <flux:subheading>Ingrese el número de años de antigüedad y los días de vacaciones asignados.</flux:subheading>
             </div>
 
-            <flux:field>
-                <flux:label>Desde (años)</flux:label>
-                <flux:input type="number" wire:model="form.anios_desde" placeholder="Ej. 1" />
-                <flux:error name="form.anios_desde" />
-            </flux:field>
+            <div class="grid grid-cols-1 gap-4">
+                <flux:field>
+                    <flux:label>Desde (años)</flux:label>
+                    <flux:input type="number" wire:model="form.anios_desde" placeholder="Ej. 1" />
+                    <flux:error name="form.anios_desde" />
+                </flux:field>
 
-            <flux:field>
-                <flux:label>Hasta (años)</flux:label>
-                <flux:input type="number" wire:model="form.anios_hasta" placeholder="Ej. 5" />
-                <flux:error name="form.anios_hasta" />
-            </flux:field>
+                <flux:field>
+                    <flux:label>Hasta (años)</flux:label>
+                    <flux:input type="number" wire:model="form.anios_hasta" placeholder="Ej. 5" />
+                    <flux:error name="form.anios_hasta" />
+                </flux:field>
 
-            <flux:field>
-                <flux:label>Días asignados</flux:label>
-                <flux:input type="number" wire:model="form.dias_asignados" placeholder="Ej. 15" />
-                <flux:error name="form.dias_asignados" />
-            </flux:field>
+                <flux:field>
+                    <flux:label>Días asignados</flux:label>
+                    <flux:input type="number" wire:model="form.dias_asignados" placeholder="Ej. 15" />
+                    <flux:error name="form.dias_asignados" />
+                </flux:field>
 
-            <div class="flex">
-                <flux:spacer />
-                <flux:button type="submit" variant="primary">Guardar</flux:button>
+                <div class="flex">
+                    <flux:spacer />
+                    <flux:button type="submit" variant="primary">Guardar</flux:button>
+                </div>
             </div>
         </form>
     </flux:modal>

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Gestion extends BaseModel
@@ -21,5 +20,10 @@ class Gestion extends BaseModel
     public function compensaciones(): HasMany
     {
         return $this->hasMany(Compensacion::class);
+    }
+
+    public function feriados(): HasMany
+    {
+        return $this->hasMany(Feriado::class);
     }
 }

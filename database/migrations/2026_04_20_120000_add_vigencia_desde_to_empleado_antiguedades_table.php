@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('empleado_antiguedades', function (Blueprint $table) {
+            $table->date('vigencia_desde')->nullable()->after('fecha_reconocida');
+        });
+
+        DB::table('empleado_antiguedades')
+            ->whereNull('vigencia_desde')
+            ->update([
+                'vigencia_desde' => DB::raw('DATE(created_at)'),
+            ]);
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('empleado_antiguedades', function (Blueprint $table) {
+            $table->dropColumn('vigencia_desde');
+        });
+    }
+};

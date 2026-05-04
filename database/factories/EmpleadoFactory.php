@@ -24,9 +24,6 @@ class EmpleadoFactory extends Factory
             'carnet_identidad' => $this->faker->unique()->numerify('#######'),
             'telefono' => $this->faker->unique()->numerify('########'),
             'correo_electronico' => $this->faker->unique()->safeEmail(),
-            'nro_item' => $this->faker->unique()->numerify('ITEM-####'),
-            'tipo' => $this->faker->randomElement(['Planta', 'Eventual']),
-            'fecha_contratacion' => $this->faker->date(),
             'estado' => true,
         ];
     }

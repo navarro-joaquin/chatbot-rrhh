@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('empleados', function (Blueprint $table) {
+        Schema::create('solicitud_vacacion_detalles', function (Blueprint $table) {
             $table->id();
-            $table->string('nombre_completo');
-            $table->string('carnet_identidad')->unique();
-            $table->string('telefono')->unique();
-            $table->string('correo_electronico')->nullable();
-            $table->boolean('estado')->default(true);
+            $table->foreignId('solicitud_vacacion_id')->constrained('solicitudes_vacaciones')->onDelete('cascade');
+            $table->foreignId('vacacion_id')->constrained('vacaciones')->onDelete('cascade');
+            $table->decimal('dias_descontados', 8, 1);
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('empleados');
+        Schema::dropIfExists('solicitud_vacacion_detalles');
     }
 };
