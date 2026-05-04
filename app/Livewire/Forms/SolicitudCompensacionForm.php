@@ -2,12 +2,15 @@
 
 namespace App\Livewire\Forms;
 
+use App\Models\SolicitudCompensacion;
 use App\Services\CompensacionService;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
 class SolicitudCompensacionForm extends Form
 {
+    public ?SolicitudCompensacion $solicitud = null;
+
     #[Validate]
     public ?int $empleado_id = null;
 
@@ -40,6 +43,15 @@ class SolicitudCompensacionForm extends Form
         ];
     }
 
+    public function setSolicitud(SolicitudCompensacion $solicitud): void
+    {
+        $this->solicitud = $solicitud;
+        $this->empleado_id = $solicitud->empleado_id;
+        $this->fecha_compensacion = $solicitud->fecha_compensacion?->toDateString();
+        $this->horas_solicitadas = (float) $solicitud->horas_solicitadas;
+        $this->motivo = $solicitud->motivo;
+    }
+
     public function save(): void
     {
         $this->validate();
@@ -47,18 +59,28 @@ class SolicitudCompensacionForm extends Form
         $service = app(CompensacionService::class);
         $disponibles = $service->obtenerTotalHorasDisponibles($this->empleado_id);
 
+        if ($this->solicitud && $this->solicitud->empleado_id === $this->empleado_id) {
+            $disponibles += (float) $this->solicitud->horas_solicitadas;
+        }
+
         if ($this->horas_solicitadas > $disponibles) {
             $this->addError('horas_solicitadas', "El empleado solo tiene {$disponibles} horas disponibles.");
 
             return;
         }
 
-        $service->registrarSolicitud([
+        $payload = [
             'empleado_id' => $this->empleado_id,
             'fecha_compensacion' => $this->fecha_compensacion,
             'horas_solicitadas' => $this->horas_solicitadas,
             'motivo' => $this->motivo,
-        ]);
+        ];
+
+        if ($this->solicitud) {
+            $service->actualizarSolicitud($this->solicitud, $payload);
+        } else {
+            $service->registrarSolicitud($payload);
+        }
 
         $this->reset();
     }

@@ -447,6 +447,39 @@ it('procesa la consolidacion protegida al guardar la antiguedad desde frontend',
         ->and((float) $vacacion2024->dias_disponibles)->toBe(20.0);
 });
 
+it('no consolida de nuevo la gestion actual al guardar antiguedad del escenario 2 desde frontend', function () {
+    $this->actingAs(User::factory()->create());
+
+    $gestion2024 = Gestion::create(['anio' => 2024]);
+
+    $empleado = crearEmpleadoConContratoPlanta(
+        nombre: 'Escenario 2 frontend',
+        sufijo: '2006',
+        fechaInicio: '2023-01-03'
+    );
+
+    app(VacacionService::class)->procesarVacacionesAutomaticas(Carbon::parse('2024-01-03'));
+
+    Livewire::test('empleado-detalle', ['id' => $empleado->id])
+        ->call('createAntiguedad')
+        ->set('antiguedadForm.contrato_id', $empleado->contratoVigente->id)
+        ->set('antiguedadForm.fecha_reconocida', '2018-02-08')
+        ->set('antiguedadForm.vigencia_desde', '2024-02-21')
+        ->set('antiguedadForm.origen', 'Regularizacion')
+        ->set('antiguedadForm.observaciones', 'No debe reconsolidar la gestion actual')
+        ->set('antiguedadForm.vigente', true)
+        ->call('saveAntiguedad')
+        ->assertHasNoErrors();
+
+    $vacacion2024 = Vacacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2024->id)
+        ->first();
+
+    expect($vacacion2024)->not->toBeNull()
+        ->and((float) $vacacion2024->dias_disponibles)->toBe(15.0)
+        ->and(Vacacion::where('empleado_id', $empleado->id)->count())->toBe(1);
+});
+
 function crearEmpleado(string $nombre, string $sufijo): Empleado
 {
     return Empleado::create([

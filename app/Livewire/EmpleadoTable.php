@@ -84,7 +84,7 @@ final class EmpleadoTable extends PowerGridComponent
         return [
             Button::add('view')
                 ->slot('Ver Detalle')
-                ->class('inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700')
+                ->class('inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-200')
                 ->route('empleados.show', ['id' => $row->id]),
 
             Button::add('edit')

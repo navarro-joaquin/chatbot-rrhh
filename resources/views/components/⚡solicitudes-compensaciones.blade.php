@@ -2,6 +2,8 @@
 
 use App\Livewire\Forms\SolicitudCompensacionForm;
 use App\Models\Empleado;
+use App\Models\SolicitudCompensacion;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component
@@ -17,15 +19,27 @@ new class extends Component
         $this->showModal = true;
     }
 
+    #[On('edit')]
+    public function edit(int $id): void
+    {
+        $this->form->setSolicitud(SolicitudCompensacion::findOrFail($id));
+        $this->message = '';
+        $this->showModal = true;
+    }
+
     public function save(): void
     {
+        $isEditing = $this->form->solicitud !== null;
+
         $this->form->save();
 
         if ($this->getErrorBag()->has('form.horas_solicitadas')) {
             return;
         }
 
-        $this->message = 'Solicitud de compensacion registrada y horas descontadas correctamente.';
+        $this->message = $isEditing
+            ? 'Solicitud de compensacion actualizada y saldo reajustado correctamente.'
+            : 'Solicitud de compensacion registrada y horas descontadas correctamente.';
         $this->showModal = false;
         $this->dispatch('pg:eventRefresh-solicitudes-compensaciones-table');
         $this->dispatch('notify', $this->message);
@@ -62,8 +76,8 @@ new class extends Component
     <flux:modal wire:model="showModal" class="md:w-96">
         <form wire:submit="save" class="space-y-6">
             <div>
-                <flux:heading size="lg">Nueva Solicitud</flux:heading>
-                <flux:subheading>Registre el uso de horas de compensacion. Las horas se descontaran automaticamente de los saldos mas antiguos.</flux:subheading>
+                <flux:heading size="lg">{{ $form->solicitud ? 'Editar' : 'Nueva' }} Solicitud</flux:heading>
+                <flux:subheading>Registre el uso de horas de compensacion. Las horas se descuentan por FIFO y al editar se reajusta el saldo automaticamente.</flux:subheading>
             </div>
 
             <div class="grid grid-cols-1 gap-4">
@@ -98,7 +112,7 @@ new class extends Component
 
                 <div class="flex">
                     <flux:spacer />
-                    <flux:button type="submit" variant="primary">Guardar y Descontar</flux:button>
+                    <flux:button type="submit" variant="primary">{{ $form->solicitud ? 'Guardar Cambios' : 'Guardar y Descontar' }}</flux:button>
                 </div>
             </div>
         </form>

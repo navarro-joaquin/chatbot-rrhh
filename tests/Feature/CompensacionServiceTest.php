@@ -107,6 +107,127 @@ it('solo suma horas disponibles de compensacion', function () {
     expect($service->obtenerTotalHorasDisponibles($empleado->id))->toBe(6.0);
 });
 
+it('actualiza una solicitud reduciendo horas y devuelve saldo correctamente', function () {
+    $empleado = crearEmpleadoCompensacion('Editar Compensacion Reduce', '3003');
+
+    $gestion2025 = Gestion::create(['anio' => 2025]);
+    $gestion2026 = Gestion::create(['anio' => 2026]);
+    $contrato = $empleado->contratoVigente()->firstOrFail();
+
+    Compensacion::create([
+        'empleado_id' => $empleado->id,
+        'gestion_id' => $gestion2025->id,
+        'contrato_id' => $contrato->id,
+        'cantidad_horas' => 2,
+        'descripcion' => 'Saldo antiguo',
+        'fecha_registro' => '2025-03-01',
+        'estado' => 'disponible',
+    ]);
+
+    Compensacion::create([
+        'empleado_id' => $empleado->id,
+        'gestion_id' => $gestion2026->id,
+        'contrato_id' => $contrato->id,
+        'cantidad_horas' => 5,
+        'descripcion' => 'Saldo reciente',
+        'fecha_registro' => '2026-01-10',
+        'estado' => 'disponible',
+    ]);
+
+    $service = app(CompensacionService::class);
+
+    $solicitud = $service->registrarSolicitud([
+        'empleado_id' => $empleado->id,
+        'fecha_compensacion' => '2026-04-30',
+        'horas_solicitadas' => 4,
+        'motivo' => 'Salida medica',
+    ]);
+
+    $service->actualizarSolicitud($solicitud, [
+        'empleado_id' => $empleado->id,
+        'fecha_compensacion' => '2026-05-02',
+        'horas_solicitadas' => 1,
+        'motivo' => 'Ajuste menor',
+    ]);
+
+    $saldo2025 = Compensacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2025->id)
+        ->first();
+
+    $saldo2026 = Compensacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2026->id)
+        ->first();
+
+    $solicitudActualizada = SolicitudCompensacion::findOrFail($solicitud->id);
+
+    expect((float) $solicitudActualizada->horas_solicitadas)->toBe(1.0)
+        ->and((float) $saldo2025->cantidad_horas)->toBe(1.0)
+        ->and($saldo2025->estado)->toBe('disponible')
+        ->and((float) $saldo2026->cantidad_horas)->toBe(5.0)
+        ->and($service->obtenerTotalHorasDisponibles($empleado->id))->toBe(6.0);
+});
+
+it('actualiza una solicitud aumentando horas y descuenta saldo con FIFO', function () {
+    $empleado = crearEmpleadoCompensacion('Editar Compensacion Aumenta', '3004');
+
+    $gestion2025 = Gestion::create(['anio' => 2025]);
+    $gestion2026 = Gestion::create(['anio' => 2026]);
+    $contrato = $empleado->contratoVigente()->firstOrFail();
+
+    Compensacion::create([
+        'empleado_id' => $empleado->id,
+        'gestion_id' => $gestion2025->id,
+        'contrato_id' => $contrato->id,
+        'cantidad_horas' => 2,
+        'descripcion' => 'Saldo antiguo',
+        'fecha_registro' => '2025-03-01',
+        'estado' => 'disponible',
+    ]);
+
+    Compensacion::create([
+        'empleado_id' => $empleado->id,
+        'gestion_id' => $gestion2026->id,
+        'contrato_id' => $contrato->id,
+        'cantidad_horas' => 5,
+        'descripcion' => 'Saldo reciente',
+        'fecha_registro' => '2026-01-10',
+        'estado' => 'disponible',
+    ]);
+
+    $service = app(CompensacionService::class);
+
+    $solicitud = $service->registrarSolicitud([
+        'empleado_id' => $empleado->id,
+        'fecha_compensacion' => '2026-04-30',
+        'horas_solicitadas' => 1,
+        'motivo' => 'Salida breve',
+    ]);
+
+    $service->actualizarSolicitud($solicitud, [
+        'empleado_id' => $empleado->id,
+        'fecha_compensacion' => '2026-05-03',
+        'horas_solicitadas' => 6,
+        'motivo' => 'Ajuste mayor',
+    ]);
+
+    $saldo2025 = Compensacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2025->id)
+        ->first();
+
+    $saldo2026 = Compensacion::where('empleado_id', $empleado->id)
+        ->where('gestion_id', $gestion2026->id)
+        ->first();
+
+    $solicitudActualizada = SolicitudCompensacion::findOrFail($solicitud->id);
+
+    expect((float) $solicitudActualizada->horas_solicitadas)->toBe(6.0)
+        ->and((float) $saldo2025->cantidad_horas)->toBe(0.0)
+        ->and($saldo2025->estado)->toBe('utilizado')
+        ->and((float) $saldo2026->cantidad_horas)->toBe(1.0)
+        ->and($saldo2026->estado)->toBe('disponible')
+        ->and($service->obtenerTotalHorasDisponibles($empleado->id))->toBe(1.0);
+});
+
 function crearEmpleadoCompensacion(string $nombre, string $sufijo): Empleado
 {
     $empleado = Empleado::create([

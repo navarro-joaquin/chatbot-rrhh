@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SolicitudCompensacion extends BaseModel
 {
@@ -31,5 +32,10 @@ class SolicitudCompensacion extends BaseModel
     public function empleado(): BelongsTo
     {
         return $this->belongsTo(Empleado::class);
+    }
+
+    public function detalles(): HasMany
+    {
+        return $this->hasMany(SolicitudCompensacionDetalle::class, 'solicitud_compensacion_id');
     }
 }

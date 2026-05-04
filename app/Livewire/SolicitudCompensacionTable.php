@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Empleado;
 use App\Models\SolicitudCompensacion;
 use Illuminate\Database\Eloquent\Builder;
+use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\Filter;
 use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
@@ -54,7 +55,7 @@ final class SolicitudCompensacionTable extends PowerGridComponent
 
     public function columns(): array
     {
-        return [
+        $columns = [
             Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
                 ->searchable()
                 ->sortable(),
@@ -71,6 +72,14 @@ final class SolicitudCompensacionTable extends PowerGridComponent
             Column::make('Estado', 'estado_label', 'estado')
                 ->sortable(),
         ];
+
+        $columns[] = Column::action('Acciones')
+            ->hidden(
+                isHidden: $this->isDetailView,
+                isForceHidden: $this->isDetailView
+            );
+
+        return $columns;
     }
 
     public function filters(): array
@@ -87,6 +96,20 @@ final class SolicitudCompensacionTable extends PowerGridComponent
                 ])
                 ->optionValue('value')
                 ->optionLabel('label'),
+        ];
+    }
+
+    public function actions(SolicitudCompensacion $row): array
+    {
+        if ($this->isDetailView) {
+            return [];
+        }
+
+        return [
+            Button::add('edit')
+                ->slot('Editar')
+                ->class('inline-flex items-center px-3 py-1 bg-zinc-800 text-white rounded-md text-xs font-medium hover:bg-zinc-700 dark:bg-zinc-200 dark:text-zinc-900')
+                ->dispatch('edit', ['id' => $row->id]),
         ];
     }
 }

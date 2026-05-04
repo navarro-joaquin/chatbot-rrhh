@@ -222,7 +222,7 @@ new class extends Component
                 <div class="rounded-xl border border-zinc-200 dark:border-zinc-700 p-4 space-y-1">
                     <flux:text class="text-sm text-zinc-500">Contrato / Item</flux:text>
                     <flux:heading size="md">
-                        {{ $empleado->contratoVigente?->numero_contrato ?: ($empleado->contratoVigente?->nro_item ?? 'Sin dato') }}
+                        {{ $empleado->contratoVigente?->numero_contrato . ' / ' . ($empleado->contratoVigente?->nro_item ?? 'Sin dato') }}
                     </flux:heading>
                 </div>
 
@@ -302,7 +302,7 @@ new class extends Component
                 <flux:subheading>Registre el historial contractual del empleado.</flux:subheading>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4">
                 <flux:field>
                     <flux:label>Tipo</flux:label>
                     <flux:select wire:model.live="contratoForm.tipo">
@@ -387,7 +387,7 @@ new class extends Component
                 <flux:subheading>Registre la antiguedad reconocida del empleado.</flux:subheading>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4">
                 <flux:field>
                     <flux:label>Contrato</flux:label>
                     <flux:select wire:model="antiguedadForm.contrato_id">

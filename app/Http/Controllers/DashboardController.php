@@ -7,6 +7,7 @@ use App\Models\Empleado;
 use App\Models\EmpleadoContrato;
 use App\Models\Feriado;
 use App\Models\Gestion;
+use App\Models\SolicitudCompensacion;
 use App\Models\SolicitudVacacion;
 use App\Models\Vacacion;
 use Carbon\Carbon;
@@ -54,6 +55,10 @@ class DashboardController extends Controller
             ->where('estado', 'disponible')
             ->sum('cantidad_horas');
 
+        $solicitudesCompensacionMes = SolicitudCompensacion::query()
+            ->whereBetween('fecha_compensacion', [$today->copy()->startOfMonth(), $today->copy()->endOfMonth()])
+            ->count();
+
         $resumenContratos = EmpleadoContrato::query()
             ->select('estado', DB::raw('COUNT(*) as total'))
             ->groupBy('estado')
@@ -89,12 +94,14 @@ class DashboardController extends Controller
             ->get();
 
         $topSaldosVacaciones = Vacacion::query()
-            ->with('empleado:id,nombre_completo')
-            ->when(
-                $currentGestion !== null,
-                fn ($query) => $query->where('gestion_id', $currentGestion->id)
+            ->join('empleados', 'vacaciones.empleado_id', '=', 'empleados.id')
+            ->select(
+                'vacaciones.empleado_id',
+                'empleados.nombre_completo',
+                DB::raw('SUM(vacaciones.dias_disponibles) as total_dias_disponibles')
             )
-            ->orderByDesc('dias_disponibles')
+            ->groupBy('vacaciones.empleado_id', 'empleados.nombre_completo')
+            ->orderByDesc('total_dias_disponibles')
             ->limit(5)
             ->get();
 
@@ -109,6 +116,7 @@ class DashboardController extends Controller
             'promedioVacaciones' => $promedioVacaciones,
             'solicitudesMes' => $solicitudesMes,
             'horasCompensacionDisponibles' => $horasCompensacionDisponibles,
+            'solicitudesCompensacionMes' => $solicitudesCompensacionMes,
             'resumenContratos' => $resumenContratos,
             'resumenTiposContrato' => $resumenTiposContrato,
             'resumenSolicitudes' => $resumenSolicitudes,

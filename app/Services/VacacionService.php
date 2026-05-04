@@ -462,6 +462,17 @@ class VacacionService
 
         $aniversarioReconocido = $this->obtenerPrimerAniversarioDisponible($fechaReconocida, $fechaReconocimiento);
 
+        if ($aniversarioNormal->lessThan($fechaReconocimiento)) {
+            $this->debug($debugger, 'Proteccion descartada porque la gestion actual ya consolido por contrato', [
+                'empleado_id' => $empleado->id,
+                'fecha_evaluada' => $fecha->toDateString(),
+                'aniversario_contrato' => $aniversarioNormal->toDateString(),
+                'fecha_registro_reconocimiento' => $fechaReconocimiento->toDateString(),
+            ]);
+
+            return null;
+        }
+
         if (! $aniversarioReconocido->greaterThan($aniversarioNormal)) {
             $this->debug($debugger, 'Proteccion descartada porque el reconocimiento no desplaza la siguiente consolidacion', [
                 'empleado_id' => $empleado->id,
