@@ -254,9 +254,9 @@ new class extends Component
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-2">
                     <flux:icon name="scale" class="text-zinc-500" />
-                    <flux:heading size="lg">Antigüedades</flux:heading>
+                    <flux:heading size="lg">Antigüedad reconocida</flux:heading>
                 </div>
-                <flux:button wire:click="createAntiguedad" variant="primary" icon="plus">Nueva Antiguedad</flux:button>
+                <flux:button wire:click="createAntiguedad" variant="primary" icon="plus">Nueva Antigüedad</flux:button>
             </div>
 
             <livewire:empleado-antiguedad-table :empleado-id="$empleado->id" />

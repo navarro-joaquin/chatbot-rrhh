@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\EmpleadoFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Empleado extends BaseModel
 {
-    /** @use HasFactory<\Database\Factories\EmpleadoFactory> */
+    /** @use HasFactory<EmpleadoFactory> */
     use HasFactory;
 
     protected $table = 'empleados';
@@ -71,5 +72,10 @@ class Empleado extends BaseModel
     public function whatsappConversacion(): HasOne
     {
         return $this->hasOne(WhatsappConversacion::class);
+    }
+
+    public function consolidacionesVacaciones(): HasMany
+    {
+        return $this->hasMany(ConsolidacionVacacion::class);
     }
 }

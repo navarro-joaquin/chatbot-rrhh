@@ -26,4 +26,9 @@ class Gestion extends BaseModel
     {
         return $this->hasMany(Feriado::class);
     }
+
+    public function consolidacionesVacaciones(): HasMany
+    {
+        return $this->hasMany(ConsolidacionVacacion::class);
+    }
 }

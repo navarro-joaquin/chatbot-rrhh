@@ -52,10 +52,13 @@
                     <flux:sidebar.item icon="clipboard-document-check" :href="route('solicitudes-compensaciones.index')" :current="request()->routeIs('solicitudes-compensaciones.index')" wire:navigate>
                        {{ __('Sol. de Compensación') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="command-line" :href="route('consolidacion-vacacion.index')" :current="request()->routeIs('consolidacion-vacacion.index')" wire:navigate>
+                       {{ __('Consolidaciones') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="finger-print" :href="route('actividades.index')" :current="request()->routeIs('actividades.index')" wire:navigate>
                        {{ __('Actividad') }}
                     </flux:sidebar.item>
-                    </flux:sidebar.group>
+                </flux:sidebar.group>
 
             </flux:sidebar.nav>
 

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Antiguedad;
+use App\Models\ConsolidacionVacacion;
 use App\Models\Empleado;
 use App\Models\EmpleadoAntiguedad;
 use App\Models\Feriado;
@@ -572,17 +573,34 @@ class VacacionService
             return null;
         }
 
-        $vacacion->dias_disponibles = $vacacion->exists
+        $existe = $vacacion->exists;
+
+        $vacacion->dias_disponibles = $existe
             ? $diasActuales + $candidato['dias']
             : $candidato['dias'];
-        $vacacion->save();
 
-        $this->debug($debugger, 'Vacacion persistida', [
+        $accion = $existe ? 'actualizada' : 'creada';
+
+        DB::transaction(function () use ($vacacion, $empleado, $gestion, $candidato, $accion) {
+            $vacacion->save();
+
+            ConsolidacionVacacion::create([
+                'empleado_id' => $empleado->id,
+                'gestion_id' => $gestion->id,
+                'dias_anadidos' => $candidato['dias'],
+                'dias_totales_despues' => $vacacion->dias_disponibles,
+                'origen' => $candidato['origen'],
+                'accion' => $accion,
+                'observaciones' => "Consolidación automática vía aniversario/protección ({$candidato['anios']} años).",
+            ]);
+        });
+
+        $this->debug($debugger, 'Vacacion persistida e historial registrado', [
             'empleado_id' => $empleado->id,
             'gestion' => $gestion->anio,
             'dias' => $candidato['dias'],
             'origen' => $candidato['origen'],
-            'accion' => $vacacion->wasRecentlyCreated ? 'creada' : 'actualizada',
+            'accion' => $accion,
         ]);
 
         return [
@@ -590,7 +608,7 @@ class VacacionService
             'gestion' => $gestion->anio,
             'dias' => $candidato['dias'],
             'origen' => $candidato['origen'],
-            'accion' => $vacacion->wasRecentlyCreated ? 'creada' : 'actualizada',
+            'accion' => $accion,
         ];
     }
 

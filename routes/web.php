@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('solicitudes-compensaciones', 'solicitudes-compensaciones')->name('solicitudes-compensaciones.index');
     Route::livewire('actividades', 'actividades')->name('actividades.index');
     Route::livewire('feriados', 'feriados')->name('feriados.index');
+    Route::livewire('consolidacion-vacacion', 'consolidacion-vacacion')->name('consolidacion-vacacion.index');
 });
 
 require __DIR__.'/settings.php';
