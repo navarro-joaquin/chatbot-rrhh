@@ -138,7 +138,7 @@ return [
     */
 
     'exportable' => [
-        'default' => 'openspout_v4',
+        'default' => 'openspout_v5',
         'openspout_v5' => [
             'xlsx' => \PowerComponents\LivewirePowerGrid\Components\Exports\OpenSpout\v5\ExportToXLS::class,
             'csv' => \PowerComponents\LivewirePowerGrid\Components\Exports\OpenSpout\v5\ExportToCsv::class,

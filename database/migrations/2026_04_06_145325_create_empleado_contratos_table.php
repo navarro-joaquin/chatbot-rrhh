@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('empleado_contratos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('empleado_id')->constrained('empleados')->onDelete('cascade');
-            $table->enum('tipo', ['Planta', 'Eventual'])->default('Planta');
+            $table->enum('tipo', ['Indefinido', 'Eventual'])->default('Indefinido');
             $table->string('numero_contrato')->nullable();
             $table->string('nro_item')->nullable();
             $table->date('fecha_inicio');

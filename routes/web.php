@@ -19,6 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('actividades', 'actividades')->name('actividades.index');
     Route::livewire('feriados', 'feriados')->name('feriados.index');
     Route::livewire('consolidacion-vacacion', 'consolidacion-vacacion')->name('consolidacion-vacacion.index');
+    Route::livewire('reporte-historial-vacaciones', 'reporte-historial-vacaciones')->name('reportes.historial-vacaciones');
 });
 
 require __DIR__.'/settings.php';

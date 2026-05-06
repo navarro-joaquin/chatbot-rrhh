@@ -62,6 +62,14 @@
 
             </flux:sidebar.nav>
 
+            <flux:sidebar.nav>
+                <flux:sidebar.group :heading="__('Reportes')">
+                    <flux:sidebar.item icon="document-text" :href="route('reportes.historial-vacaciones')" :current="request()->routeIs('reportes.historial-vacaciones')" wire:navigate>
+                        {{ __('Historial Vacaciones') }}
+                    </flux:sidebar.item>
+                </flux:sidebar.group>
+            </flux:sidebar.nav>
+
             <flux:spacer />
 
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
