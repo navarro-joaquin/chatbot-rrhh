@@ -36,7 +36,7 @@ it('registra un historial cuando se crea una vacacion automatica', function () {
 
     EmpleadoContrato::create([
         'empleado_id' => $empleado->id,
-        'tipo' => 'Planta',
+        'tipo' => 'Indefinido',
         'fecha_inicio' => '2023-01-03',
         'estado' => 'Vigente',
         'es_vigente' => true,
@@ -68,7 +68,7 @@ it('registra un historial cuando se actualiza una vacacion automatica', function
 
     EmpleadoContrato::create([
         'empleado_id' => $empleado->id,
-        'tipo' => 'Planta',
+        'tipo' => 'Indefinido',
         'fecha_inicio' => '2023-01-03',
         'estado' => 'Vigente',
         'es_vigente' => true,

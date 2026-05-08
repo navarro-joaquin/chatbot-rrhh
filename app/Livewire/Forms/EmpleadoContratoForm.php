@@ -15,7 +15,7 @@ class EmpleadoContratoForm extends Form
     public ?int $empleado_id = null;
 
     #[Validate]
-    public ?string $tipo = 'Planta';
+    public ?string $tipo = 'Indefinido';
 
     #[Validate]
     public ?string $numero_contrato = null;
@@ -42,7 +42,7 @@ class EmpleadoContratoForm extends Form
     {
         return [
             'empleado_id' => ['required', 'exists:empleados,id'],
-            'tipo' => ['required', Rule::in(['Planta', 'Eventual'])],
+            'tipo' => ['required', Rule::in(['Indefinido', 'Eventual'])],
             'numero_contrato' => [
                 'nullable',
                 'string',
@@ -118,7 +118,7 @@ class EmpleadoContratoForm extends Form
         }
 
         $this->reset();
-        $this->tipo = 'Planta';
+        $this->tipo = 'Indefinido';
         $this->estado = 'Vigente';
         $this->es_vigente = true;
     }

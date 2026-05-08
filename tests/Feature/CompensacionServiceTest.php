@@ -240,7 +240,7 @@ function crearEmpleadoCompensacion(string $nombre, string $sufijo): Empleado
 
     EmpleadoContrato::create([
         'empleado_id' => $empleado->id,
-        'tipo' => 'Planta',
+        'tipo' => 'Indefinido',
         'numero_contrato' => null,
         'nro_item' => 'ITEM-'.$sufijo,
         'fecha_inicio' => '2025-01-01',

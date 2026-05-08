@@ -54,7 +54,7 @@ class EmpleadoMatrizSeeder extends Seeder
 
             EmpleadoContrato::create([
                 'empleado_id' => $empleado->id,
-                'tipo' => 'Planta',
+                'tipo' => 'Indefinido',
                 'numero_contrato' => null,
                 'nro_item' => $data['nro_item'],
                 'fecha_inicio' => $data['fecha_inicio_contrato'],

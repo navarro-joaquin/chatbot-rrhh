@@ -88,7 +88,7 @@ new class extends Component
             <div class="grid grid-cols-1 gap-4">
                 <flux:field>
                     <flux:label>Desde (años)</flux:label>
-                    <flux:input type="number" wire:model="form.anios_desde" placeholder="Ej. 1" />
+                    <flux:input type="number" min="0" wire:model="form.anios_desde" placeholder="Ej. 1" />
                     <flux:error name="form.anios_desde" />
                 </flux:field>
 

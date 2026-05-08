@@ -41,7 +41,7 @@ test('authenticated users can see dashboard statistics', function () {
 
     $contrato = EmpleadoContrato::create([
         'empleado_id' => $empleadoActivo->id,
-        'tipo' => 'Planta',
+        'tipo' => 'Indefinido',
         'numero_contrato' => 'C-001',
         'fecha_inicio' => '2026-01-01',
         'fecha_fin' => '2026-05-10',

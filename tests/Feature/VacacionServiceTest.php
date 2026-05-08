@@ -207,7 +207,7 @@ it('vacaciones, ejemplo real 1, Juan Perez', function () {
 
     $service = app(VacacionService::class);
 
-    $empleado = crearEmpleadoConContratoPlanta(
+    $empleado = crearEmpleadoConContratoIndefinido(
         nombre: 'Juan Perez',
         sufijo: '550',
         fechaInicio: '2023-01-03'
@@ -243,7 +243,7 @@ it('vacaciones, ejemplo real 1, Juan Perez', function () {
 });
 
 it('escenario 1 acumula una nueva consolidacion mas beneficiosa dentro de la misma gestion', function () {
-    $empleado = crearEmpleadoConContratoPlanta(
+    $empleado = crearEmpleadoConContratoIndefinido(
         nombre: 'Escenario 1',
         sufijo: '2001',
         fechaInicio: '2023-01-03',
@@ -272,7 +272,7 @@ it('escenario 1 acumula una nueva consolidacion mas beneficiosa dentro de la mis
 });
 
 it('acumula la segunda consolidacion aunque exista consumo previo en la misma gestion', function () {
-    $empleado = crearEmpleadoConContratoPlanta(
+    $empleado = crearEmpleadoConContratoIndefinido(
         nombre: 'Escenario 1 con uso',
         sufijo: '2004',
         fechaInicio: '2023-01-03',
@@ -308,7 +308,7 @@ it('acumula la segunda consolidacion aunque exista consumo previo en la misma ge
 });
 
 it('escenario 2 mantiene consolidaciones en gestiones distintas', function () {
-    $empleado = crearEmpleadoConContratoPlanta(
+    $empleado = crearEmpleadoConContratoIndefinido(
         nombre: 'Escenario 2',
         sufijo: '2002',
         fechaInicio: '2023-01-03',
@@ -338,7 +338,7 @@ it('escenario 2 mantiene consolidaciones en gestiones distintas', function () {
 });
 
 it('escenario 3 protege el derecho cuando el reconocimiento desplaza la siguiente consolidacion', function () {
-    $empleado = crearEmpleadoConContratoPlanta(
+    $empleado = crearEmpleadoConContratoIndefinido(
         nombre: 'Escenario 3',
         sufijo: '2003',
         fechaInicio: '2022-11-03',
@@ -375,7 +375,7 @@ it('Ejemplo: Escenario3', function() {
     $gestion2024 = Gestion::create(['anio' => '2024']);
     $gestion2025 = Gestion::create(['anio' => '2025']);
 
-    $empleado = crearEmpleadoConContratoPlanta(
+    $empleado = crearEmpleadoConContratoIndefinido(
         nombre: 'Juan Perez',
         sufijo: '2002',
         fechaInicio: '2022-11-03'
@@ -420,7 +420,7 @@ it('procesa la consolidacion protegida al guardar la antiguedad desde frontend',
     Gestion::create(['anio' => 2023]);
     $gestion2024 = Gestion::create(['anio' => 2024]);
 
-    $empleado = crearEmpleadoConContratoPlanta(
+    $empleado = crearEmpleadoConContratoIndefinido(
         nombre: 'Escenario 3 frontend',
         sufijo: '2005',
         fechaInicio: '2022-11-03'
@@ -452,7 +452,7 @@ it('no consolida de nuevo la gestion actual al guardar antiguedad del escenario 
 
     $gestion2024 = Gestion::create(['anio' => 2024]);
 
-    $empleado = crearEmpleadoConContratoPlanta(
+    $empleado = crearEmpleadoConContratoIndefinido(
         nombre: 'Escenario 2 frontend',
         sufijo: '2006',
         fechaInicio: '2023-01-03'
@@ -491,13 +491,13 @@ function crearEmpleado(string $nombre, string $sufijo): Empleado
     ]);
 }
 
-function crearEmpleadoConContratoPlanta(string $nombre, string $sufijo, string $fechaInicio): Empleado
+function crearEmpleadoConContratoIndefinido(string $nombre, string $sufijo, string $fechaInicio): Empleado
 {
     $empleado = crearEmpleado($nombre, $sufijo);
 
     EmpleadoContrato::create([
         'empleado_id' => $empleado->id,
-        'tipo' => 'Planta',
+        'tipo' => 'Indefinido',
         'numero_contrato' => null,
         'nro_item' => 'ITEM-'.$sufijo,
         'fecha_inicio' => $fechaInicio,

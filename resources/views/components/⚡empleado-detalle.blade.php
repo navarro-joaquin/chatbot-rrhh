@@ -43,7 +43,7 @@ new class extends Component
     public function createContrato(): void
     {
         $this->contratoForm->reset();
-        $this->contratoForm->tipo = 'Planta';
+        $this->contratoForm->tipo = 'Indefinido';
         $this->contratoForm->estado = 'Vigente';
         $this->contratoForm->es_vigente = true;
         $this->contratoForm->setEmpleadoId($this->empleado->id);
@@ -306,7 +306,7 @@ new class extends Component
                 <flux:field>
                     <flux:label>Tipo</flux:label>
                     <flux:select wire:model.live="contratoForm.tipo">
-                        <flux:select.option value="Planta">Planta</flux:select.option>
+                        <flux:select.option value="Indefinido">Indefinido</flux:select.option>
                         <flux:select.option value="Eventual">Eventual</flux:select.option>
                     </flux:select>
                     <flux:error name="contratoForm.tipo" />

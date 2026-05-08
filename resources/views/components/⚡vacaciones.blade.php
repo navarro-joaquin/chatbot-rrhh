@@ -60,7 +60,7 @@ new class extends Component
         return [
             'empleados' => Empleado::whereHas('contratos', function($query) {
                 $query->where('estado', 'Vigente')
-                    ->where('tipo', 'Planta');
+                    ->where('tipo', 'Indefinido');
             })
                 ->orderBy('nombre_completo', 'asc')
                 ->pluck('nombre_completo', 'id'),
@@ -125,7 +125,7 @@ new class extends Component
 
                 <flux:field>
                     <flux:label>Días Disponibles</flux:label>
-                    <flux:input type="number" step="0.5" wire:model="form.dias_disponibles" placeholder="Ej: 15" />
+                    <flux:input type="number" min="0.5" step="0.5" wire:model="form.dias_disponibles" placeholder="Ej: 15" />
                     <flux:error name="form.dias_disponibles" />
                 </flux:field>
 

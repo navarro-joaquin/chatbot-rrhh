@@ -80,7 +80,7 @@ class VacacionService
         $empleados = Empleado::query()
             ->with(['contratoVigente', 'antiguedadVigente'])
             ->where('estado', true)
-            ->whereHas('contratoVigente', fn ($query) => $query->where('tipo', 'Planta'))
+            ->whereHas('contratoVigente', fn ($query) => $query->where('tipo', 'Indefinido'))
             ->get();
 
         $this->debug($debugger, 'Empleados elegibles cargados', [
@@ -102,7 +102,7 @@ class VacacionService
             ->with(['contratoVigente', 'antiguedadVigente'])
             ->whereKey($empleadoId)
             ->where('estado', true)
-            ->whereHas('contratoVigente', fn ($query) => $query->where('tipo', 'Planta'))
+            ->whereHas('contratoVigente', fn ($query) => $query->where('tipo', 'Indefinido'))
             ->first();
 
         if (! $empleado) {

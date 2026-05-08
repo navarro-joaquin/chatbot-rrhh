@@ -100,7 +100,7 @@ new class extends Component
 
                 <flux:field>
                     <flux:label>Horas a solicitar</flux:label>
-                    <flux:input type="number" step="0.5" wire:model="form.horas_solicitadas" placeholder="Ej: 4" />
+                    <flux:input type="number" min="0.5" step="0.5" wire:model="form.horas_solicitadas" placeholder="Ej: 4" />
                     <flux:error name="form.horas_solicitadas" />
                 </flux:field>
 

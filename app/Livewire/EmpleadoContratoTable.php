@@ -89,7 +89,7 @@ final class EmpleadoContratoTable extends PowerGridComponent
         return [
             Filter::select('tipo', 'tipo')
                 ->dataSource([
-                    ['label' => 'Planta', 'value' => 'Planta'],
+                    ['label' => 'Indefinido', 'value' => 'Indefinido'],
                     ['label' => 'Eventual', 'value' => 'Eventual'],
                 ])
                 ->optionValue('value')
