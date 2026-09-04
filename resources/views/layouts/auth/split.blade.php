@@ -16,6 +16,8 @@
 
                 @php
                     [$message, $author] = str(Illuminate\Foundation\Inspiring::quotes()->random())->explode('-');
+                    $message = "Desarrollado por el Departamento de Tecnologías de Información y Comunicación";
+                    $author = "CESSA - ".date('Y');
                 @endphp
 
                 <div class="relative z-20 mt-auto">

@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'pages.auth.login')->name('home');
 
+Route::get('test', function() {
+    echo storage_path('logs/comandos.log');
+});
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::livewire('gestiones', 'gestiones')->name('gestiones.index');
