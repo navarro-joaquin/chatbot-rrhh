@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'rrhh_bot' => [
+        'client_secret' => env('RRHH_BOT_CLIENT_SECRET'),
+        'user_email' => env('RRHH_BOT_USER_EMAIL'),
+    ],
+
 ];

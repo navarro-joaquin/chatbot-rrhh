@@ -45,7 +45,7 @@ class VacacionForm extends Form
     public function messages(): array
     {
         return [
-            'gestion_id.unique' => 'Ya existe una vacancia registrada para este empleado en esta gestión.',
+            'gestion_id.unique' => 'Ya existe un registro para este empleado en esta gestión.',
         ];
     }
 

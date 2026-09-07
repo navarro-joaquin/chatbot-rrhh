@@ -68,7 +68,7 @@ new class extends Component
 
 <div class="p-6">
     <div class="flex justify-between items-center mb-6">
-        <flux:heading size="xl">Solicitudes de Vacacion</flux:heading>
+        <flux:heading size="xl">Solicitudes de Vacación</flux:heading>
         <flux:button wire:click="create" variant="primary" icon="plus">Registrar Solicitud</flux:button>
     </div>
 

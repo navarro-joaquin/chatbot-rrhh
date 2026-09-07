@@ -10,8 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        DB::statement('DROP VIEW IF EXISTS v_historial_vacaciones');
+
         DB::statement("
-            CREATE OR REPLACE VIEW v_historial_vacaciones AS
+            CREATE VIEW v_historial_vacaciones AS
             SELECT
                 empleado_id,
                 evento,

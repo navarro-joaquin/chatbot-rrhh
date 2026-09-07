@@ -69,11 +69,6 @@ class Empleado extends BaseModel
         return $this->hasOne(EmpleadoAntiguedad::class)->where('vigente', true);
     }
 
-    public function whatsappConversacion(): HasOne
-    {
-        return $this->hasOne(WhatsappConversacion::class);
-    }
-
     public function consolidacionesVacaciones(): HasMany
     {
         return $this->hasMany(ConsolidacionVacacion::class);
