@@ -13,7 +13,7 @@ Schedule::command('app:procesar-vacaciones-anuales')
     ->dailyAt('00:00')
     ->sendOutputTo(storage_path('logs/comandos.log'));
 
-// Programar el procesamiento automático de finalizaciones de contrato Eventual
+// Programar el procesamiento automático de finalizaciones de contrato a Plazo Fijo
 Schedule::command('app:procesar-fin-contrato')
     ->dailyAt('00:00')
     ->sendOutputTo(storage_path('logs/comandos.log'));

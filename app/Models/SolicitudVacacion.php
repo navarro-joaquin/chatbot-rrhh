@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\SolicitudVacacionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SolicitudVacacion extends BaseModel
 {
-    /** @use HasFactory<\Database\Factories\SolicitudVacacionFactory> */
+    /** @use HasFactory<SolicitudVacacionFactory> */
     use HasFactory;
 
     protected $table = 'solicitudes_vacaciones';
@@ -26,7 +26,7 @@ class SolicitudVacacion extends BaseModel
     protected $casts = [
         'fecha_inicio' => 'date',
         'fecha_fin' => 'date',
-        'dias_solicitados' => 'decimal:1',
+        'dias_solicitados' => 'decimal:2',
     ];
 
     public function empleado(): BelongsTo

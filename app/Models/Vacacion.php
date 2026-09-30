@@ -17,7 +17,7 @@ class Vacacion extends BaseModel
     protected function casts(): array
     {
         return [
-            'dias_disponibles' => 'decimal:1',
+            'dias_disponibles' => 'decimal:2',
         ];
     }
 

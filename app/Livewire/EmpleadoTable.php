@@ -28,8 +28,6 @@ final class EmpleadoTable extends PowerGridComponent
             PowerGrid::footer()
                 ->showPerPage()
                 ->showRecordCount(),
-            PowerGrid::responsive()
-                ->fixedColumns('estado', 'actions'),
         ];
     }
 
@@ -51,8 +49,8 @@ final class EmpleadoTable extends PowerGridComponent
     public function columns(): array
     {
         return [
-//            Column::make('ID', 'id')
-//                ->sortable(),
+            //            Column::make('ID', 'id')
+            //                ->sortable(),
 
             Column::make('Nombre Completo', 'nombre_completo')
                 ->searchable()
@@ -67,7 +65,7 @@ final class EmpleadoTable extends PowerGridComponent
 
             Column::make('Estado', 'estado_texto', 'estado'),
 
-            Column::action('Acciones')
+            Column::action('Acciones'),
         ];
     }
 

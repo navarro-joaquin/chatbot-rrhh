@@ -4,9 +4,9 @@ namespace App\Livewire\Forms;
 
 use App\Models\SolicitudVacacion;
 use App\Services\VacacionService;
+use Carbon\Carbon;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
-use Carbon\Carbon;
 
 class SolicitudVacacionForm extends Form
 {
@@ -52,7 +52,7 @@ class SolicitudVacacionForm extends Form
             'empleado_id' => ['required', 'exists:empleados,id'],
             'fecha_inicio' => ['required', 'date'],
             'fecha_fin' => ['required', 'date', 'after_or_equal:fecha_inicio'],
-            'dias_solicitados' => ['required', 'numeric', 'min:0.5', 'max:100'],
+            'dias_solicitados' => ['required', 'numeric', 'min:0.01', 'max:100'],
             'motivo' => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -66,6 +66,45 @@ class SolicitudVacacionForm extends Form
             'dias_solicitados' => 'dias solicitados',
             'motivo' => 'motivo',
         ];
+    }
+
+    public function equivalenciaDias(): ?string
+    {
+        if (! is_numeric($this->dias_solicitados) || (float) $this->dias_solicitados <= 0) {
+            return null;
+        }
+
+        $totalMinutos = (int) round((float) $this->dias_solicitados * 8 * 60);
+        $dias = intdiv($totalMinutos, 480);
+        $resto = $totalMinutos % 480;
+        $horas = intdiv($resto, 60);
+        $minutos = $resto % 60;
+
+        $partes = [];
+
+        if ($dias > 0) {
+            $partes[] = $dias.' '.($dias === 1 ? 'día' : 'días');
+        }
+
+        if ($horas > 0) {
+            $partes[] = $horas.' '.($horas === 1 ? 'hora' : 'horas');
+        }
+
+        if ($minutos > 0) {
+            $partes[] = $minutos.' '.($minutos === 1 ? 'minuto' : 'minutos');
+        }
+
+        if ($partes === []) {
+            return '0 días';
+        }
+
+        if (count($partes) === 1) {
+            return $partes[0];
+        }
+
+        $ultima = array_pop($partes);
+
+        return implode(', ', $partes).' y '.$ultima;
     }
 
     public function setSolicitud(SolicitudVacacion $solicitud): void

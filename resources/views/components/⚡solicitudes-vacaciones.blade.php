@@ -116,7 +116,10 @@ new class extends Component
 
                 <flux:field>
                     <flux:label>Dias a solicitar</flux:label>
-                    <flux:input type="number" min="0.5" step="0.5" wire:model="form.dias_solicitados" placeholder="Ej: 5" />
+                    <flux:input type="number" min="0.01" step="0.01" wire:model.live.debounce.800ms="form.dias_solicitados" placeholder="Ej: 5" />
+                    @if($form->equivalenciaDias())
+                        <flux:description>Equivale a {{ $form->equivalenciaDias() }} (jornada de 8 horas).</flux:description>
+                    @endif
                     <flux:error name="form.dias_solicitados" />
                 </flux:field>
 

@@ -55,7 +55,7 @@
 
             <article class="rounded-3xl border border-white/60 bg-white/80 px-4 py-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <p class="text-sm uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">Vacaciones disponibles (en {{ date("Y") }})</p>
-                <p class="mt-2 text-2xl font-semibold text-zinc-900 dark:text-white">{{ number_format($diasVacacionesDisponibles, 1) }} días</p>
+                <p class="mt-2 text-2xl font-semibold text-zinc-900 dark:text-white">{{ number_format($diasVacacionesDisponibles, 2) }} días</p>
                 <p class="text-sm text-zinc-600 dark:text-zinc-300">{{ number_format($solicitudesMes) }} solicitudes este mes</p>
             </article>
 
@@ -216,7 +216,7 @@
                             <div class="flex items-center justify-between gap-3">
                                 <p class="font-medium text-zinc-900 dark:text-white">{{ $vacacion->nombre_completo }}</p>
                                 <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-                                    {{ number_format((float) $vacacion->total_dias_disponibles, 1) }} dias
+                                    {{ number_format((float) $vacacion->total_dias_disponibles, 2) }} dias
                                 </span>
                             </div>
                         </div>

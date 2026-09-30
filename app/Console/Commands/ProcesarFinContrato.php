@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use App\Models\Compensacion;
 use App\Models\EmpleadoContrato;
-use Illuminate\Console\Command;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -24,7 +24,7 @@ class ProcesarFinContrato extends Command
      *
      * @var string
      */
-    protected $description = 'Finaliza contratos eventuales vencidos y marca sus compensaciones como vencidas.';
+    protected $description = 'Finaliza contratos a plazo fijo vencidos y marca sus compensaciones como vencidas.';
 
     /**
      * Execute the console command.
@@ -38,7 +38,7 @@ class ProcesarFinContrato extends Command
 
         $contratos = EmpleadoContrato::query()
             ->with('empleado')
-            ->where('tipo', 'Eventual')
+            ->where('tipo', 'Plazo Fijo')
             ->where('estado', 'Vigente')
             ->where('es_vigente', true)
             ->whereDate('fecha_fin', '<=', $today)
@@ -46,7 +46,7 @@ class ProcesarFinContrato extends Command
             ->get();
 
         if ($contratos->isEmpty()) {
-            $this->info('No hay contratos eventuales vencidos para procesar.');
+            $this->info('No hay contratos a plazo fijo vencidos para procesar.');
 
             return;
         }

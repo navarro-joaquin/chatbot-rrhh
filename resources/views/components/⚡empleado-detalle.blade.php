@@ -307,7 +307,7 @@ new class extends Component
                     <flux:label>Tipo</flux:label>
                     <flux:select wire:model.live="contratoForm.tipo">
                         <flux:select.option value="Indefinido">Indefinido</flux:select.option>
-                        <flux:select.option value="Eventual">Eventual</flux:select.option>
+                        <flux:select.option value="Plazo Fijo">Plazo Fijo</flux:select.option>
                     </flux:select>
                     <flux:error name="contratoForm.tipo" />
                 </flux:field>

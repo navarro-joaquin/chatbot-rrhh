@@ -17,7 +17,7 @@ class SolicitudVacacionDetalle extends BaseModel
     protected function casts(): array
     {
         return [
-            'dias_descontados' => 'decimal:1',
+            'dias_descontados' => 'decimal:2',
         ];
     }
 

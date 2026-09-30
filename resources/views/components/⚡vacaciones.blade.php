@@ -125,7 +125,7 @@ new class extends Component
 
                 <flux:field>
                     <flux:label>Días Disponibles</flux:label>
-                    <flux:input type="number" min="0.5" step="0.5" wire:model="form.dias_disponibles" placeholder="Ej: 15" />
+                    <flux:input type="number" min="0.01" step="0.01" wire:model="form.dias_disponibles" placeholder="Ej: 15" />
                     <flux:error name="form.dias_disponibles" />
                 </flux:field>
 
