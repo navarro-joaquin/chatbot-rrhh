@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('empleado_id')->constrained('empleados')->onDelete('cascade');
             $table->date('fecha_compensacion');
-            $table->decimal('horas_solicitadas', 8, 2);
+            $table->decimal('horas_solicitadas', 8, 4);
             $table->string('motivo')->nullable();
             $table->enum('estado', ['aprobado', 'cancelado'])->default('aprobado');
             $table->timestamps();

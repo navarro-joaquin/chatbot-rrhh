@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('solicitud_compensacion_id');
             $table->foreignId('compensacion_id');
-            $table->decimal('horas_descontadas', 8, 2);
+            $table->decimal('horas_descontadas', 8, 4);
             $table->timestamps();
 
             $table->foreign('solicitud_compensacion_id', 'scd_solicitud_fk')

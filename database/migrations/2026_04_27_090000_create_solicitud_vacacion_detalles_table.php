@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('solicitud_vacacion_id')->constrained('solicitudes_vacaciones')->onDelete('cascade');
             $table->foreignId('vacacion_id')->constrained('vacaciones')->onDelete('cascade');
-            $table->decimal('dias_descontados', 8, 1);
+            $table->decimal('dias_descontados', 8, 4);
             $table->timestamps();
         });
     }

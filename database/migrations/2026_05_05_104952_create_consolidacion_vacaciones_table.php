@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('empleado_id')->constrained('empleados')->cascadeOnDelete();
             $table->foreignId('gestion_id')->constrained('gestiones')->cascadeOnDelete();
-            $table->decimal('dias_anadidos', 8, 1);
-            $table->decimal('dias_totales_despues', 8, 1);
+            $table->decimal('dias_anadidos', 8, 4);
+            $table->decimal('dias_totales_despues', 8, 4);
             $table->string('origen'); // e.g., 'aniversario', 'proteccion'
             $table->string('accion'); // 'creada' o 'actualizada'
             $table->text('observaciones')->nullable();

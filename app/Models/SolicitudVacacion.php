@@ -26,7 +26,7 @@ class SolicitudVacacion extends BaseModel
     protected $casts = [
         'fecha_inicio' => 'date',
         'fecha_fin' => 'date',
-        'dias_solicitados' => 'decimal:2',
+        'dias_solicitados' => 'decimal:4',
     ];
 
     public function empleado(): BelongsTo

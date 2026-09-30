@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\SolicitudCompensacionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SolicitudCompensacion extends BaseModel
 {
-    /** @use HasFactory<\Database\Factories\SolicitudCompensacionFactory> */
+    /** @use HasFactory<SolicitudCompensacionFactory> */
     use HasFactory;
 
     protected $table = 'solicitudes_compensaciones';
@@ -25,7 +26,7 @@ class SolicitudCompensacion extends BaseModel
     {
         return [
             'fecha_compensacion' => 'date',
-            'horas_solicitadas' => 'decimal:2',
+            'horas_solicitadas' => 'decimal:4',
         ];
     }
 

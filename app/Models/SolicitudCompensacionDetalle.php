@@ -17,7 +17,7 @@ class SolicitudCompensacionDetalle extends BaseModel
     protected function casts(): array
     {
         return [
-            'horas_descontadas' => 'decimal:2',
+            'horas_descontadas' => 'decimal:4',
         ];
     }
 

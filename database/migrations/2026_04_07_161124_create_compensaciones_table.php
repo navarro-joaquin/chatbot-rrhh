@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('empleado_id')->constrained('empleados')->onDelete('cascade');
             $table->foreignId('gestion_id')->constrained('gestiones')->onDelete('cascade');
             $table->foreignId('contrato_id')->constrained('empleado_contratos')->onDelete('cascade');
-            $table->decimal('cantidad_horas', 10, 2)->default(0);
+            $table->decimal('cantidad_horas', 10, 4)->default(0);
             $table->string('descripcion')->nullable();
             $table->date('fecha_registro')->nullable();
             $table->enum('estado', ['disponible', 'utilizado', 'vencido'])->default('disponible');

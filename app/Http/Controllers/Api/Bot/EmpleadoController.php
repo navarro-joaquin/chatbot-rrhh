@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Bot;
 
 use App\Http\Controllers\Controller;
 use App\Models\Empleado;
+use App\Support\VacacionesTiempo;
 use Illuminate\Http\JsonResponse;
 
 class EmpleadoController extends Controller
@@ -47,13 +48,29 @@ class EmpleadoController extends Controller
             ->sortBy(fn ($vacacion) => $vacacion->gestion?->anio)
             ->values();
 
+        $totalDias = (float) $vacaciones->sum('dias_disponibles');
+        $partesTotal = VacacionesTiempo::aPartesDias($totalDias);
+
         return response()->json([
-            'data' => $vacaciones->map(fn ($vacacion) => [
-                'gestion' => $vacacion->gestion?->anio,
-                'dias_disponibles' => (float) $vacacion->dias_disponibles,
-            ]),
+            'data' => $vacaciones->map(function ($vacacion) {
+                $dias = (float) $vacacion->dias_disponibles;
+                $partes = VacacionesTiempo::aPartesDias($dias);
+
+                return [
+                    'gestion' => $vacacion->gestion?->anio,
+                    'dias_disponibles' => $dias,
+                    'dias' => $partes['dias'],
+                    'horas' => $partes['horas'],
+                    'minutos' => $partes['minutos'],
+                    'texto' => VacacionesTiempo::aTextoDias($dias),
+                ];
+            }),
             'meta' => [
-                'total_dias_disponibles' => (float) $vacaciones->sum('dias_disponibles'),
+                'total_dias_disponibles' => $totalDias,
+                'total_dias' => $partesTotal['dias'],
+                'total_horas' => $partesTotal['horas'],
+                'total_minutos' => $partesTotal['minutos'],
+                'total_texto' => VacacionesTiempo::aTextoDias($totalDias),
             ],
         ]);
     }
@@ -67,14 +84,28 @@ class EmpleadoController extends Controller
             ->orderBy('fecha_registro')
             ->get();
 
+        $totalHoras = (float) $compensaciones->sum('cantidad_horas');
+        $partesTotal = VacacionesTiempo::aPartesHoras($totalHoras);
+
         return response()->json([
-            'data' => $compensaciones->map(fn ($compensacion) => [
-                'gestion' => $compensacion->gestion?->anio,
-                'cantidad_horas' => (float) $compensacion->cantidad_horas,
-                'fecha_registro' => $compensacion->fecha_registro?->toDateString(),
-            ]),
+            'data' => $compensaciones->map(function ($compensacion) {
+                $horas = (float) $compensacion->cantidad_horas;
+                $partes = VacacionesTiempo::aPartesHoras($horas);
+
+                return [
+                    'gestion' => $compensacion->gestion?->anio,
+                    'cantidad_horas' => $horas,
+                    'horas' => $partes['horas'],
+                    'minutos' => $partes['minutos'],
+                    'texto' => VacacionesTiempo::aTextoHoras($horas),
+                    'fecha_registro' => $compensacion->fecha_registro?->toDateString(),
+                ];
+            }),
             'meta' => [
-                'total_horas_disponibles' => (float) $compensaciones->sum('cantidad_horas'),
+                'total_horas_disponibles' => $totalHoras,
+                'total_horas' => $partesTotal['horas'],
+                'total_minutos' => $partesTotal['minutos'],
+                'total_texto' => VacacionesTiempo::aTextoHoras($totalHoras),
             ],
         ]);
     }
@@ -87,13 +118,22 @@ class EmpleadoController extends Controller
             ->get();
 
         return response()->json([
-            'data' => $solicitudes->map(fn ($solicitud) => [
-                'id' => $solicitud->id,
-                'fecha_inicio' => $solicitud->fecha_inicio?->toDateString(),
-                'fecha_fin' => $solicitud->fecha_fin?->toDateString(),
-                'dias_solicitados' => (float) $solicitud->dias_solicitados,
-                'estado' => $solicitud->estado,
-            ]),
+            'data' => $solicitudes->map(function ($solicitud) {
+                $dias = (float) $solicitud->dias_solicitados;
+                $partes = VacacionesTiempo::aPartesDias($dias);
+
+                return [
+                    'id' => $solicitud->id,
+                    'fecha_inicio' => $solicitud->fecha_inicio?->toDateString(),
+                    'fecha_fin' => $solicitud->fecha_fin?->toDateString(),
+                    'dias_solicitados' => $dias,
+                    'dias' => $partes['dias'],
+                    'horas' => $partes['horas'],
+                    'minutos' => $partes['minutos'],
+                    'texto' => VacacionesTiempo::aTextoDias($dias),
+                    'estado' => $solicitud->estado,
+                ];
+            }),
         ]);
     }
 
@@ -105,12 +145,20 @@ class EmpleadoController extends Controller
             ->get();
 
         return response()->json([
-            'data' => $solicitudes->map(fn ($solicitud) => [
-                'id' => $solicitud->id,
-                'fecha_compensacion' => $solicitud->fecha_compensacion?->toDateString(),
-                'horas_solicitadas' => (float) $solicitud->horas_solicitadas,
-                'estado' => $solicitud->estado,
-            ]),
+            'data' => $solicitudes->map(function ($solicitud) {
+                $horas = (float) $solicitud->horas_solicitadas;
+                $partes = VacacionesTiempo::aPartesHoras($horas);
+
+                return [
+                    'id' => $solicitud->id,
+                    'fecha_compensacion' => $solicitud->fecha_compensacion?->toDateString(),
+                    'horas_solicitadas' => $horas,
+                    'horas' => $partes['horas'],
+                    'minutos' => $partes['minutos'],
+                    'texto' => VacacionesTiempo::aTextoHoras($horas),
+                    'estado' => $solicitud->estado,
+                ];
+            }),
         ]);
     }
 

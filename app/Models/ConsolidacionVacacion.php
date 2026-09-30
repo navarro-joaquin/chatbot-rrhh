@@ -21,8 +21,8 @@ class ConsolidacionVacacion extends BaseModel
     protected function casts(): array
     {
         return [
-            'dias_anadidos' => 'decimal:2',
-            'dias_totales_despues' => 'decimal:2',
+            'dias_anadidos' => 'decimal:4',
+            'dias_totales_despues' => 'decimal:4',
         ];
     }
 

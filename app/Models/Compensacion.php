@@ -21,7 +21,7 @@ class Compensacion extends BaseModel
     protected function casts(): array
     {
         return [
-            'cantidad_horas' => 'decimal:2',
+            'cantidad_horas' => 'decimal:4',
             'fecha_registro' => 'date',
         ];
     }

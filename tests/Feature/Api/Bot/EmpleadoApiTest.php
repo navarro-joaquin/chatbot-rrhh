@@ -85,11 +85,20 @@ it('devuelve los saldos disponibles del empleado', function () {
 
     $this->getJson("/api/v1/bot/empleados/{$this->empleado->id}/vacaciones")
         ->assertOk()
-        ->assertJsonPath('meta.total_dias_disponibles', 12.5);
+        ->assertJsonPath('meta.total_dias_disponibles', 12.5)
+        ->assertJsonPath('data.0.dias', 12)
+        ->assertJsonPath('data.0.horas', 4)
+        ->assertJsonPath('data.0.minutos', 0)
+        ->assertJsonPath('data.0.texto', '12 días y 4 horas')
+        ->assertJsonPath('meta.total_texto', '12 días y 4 horas');
 
     $this->getJson("/api/v1/bot/empleados/{$this->empleado->id}/compensaciones")
         ->assertOk()
-        ->assertJsonPath('meta.total_horas_disponibles', 4.5);
+        ->assertJsonPath('meta.total_horas_disponibles', 4.5)
+        ->assertJsonPath('data.0.horas', 4)
+        ->assertJsonPath('data.0.minutos', 30)
+        ->assertJsonPath('data.0.texto', '4 horas y 30 minutos')
+        ->assertJsonPath('meta.total_texto', '4 horas y 30 minutos');
 });
 
 it('devuelve las solicitudes del empleado', function () {
@@ -112,9 +121,14 @@ it('devuelve las solicitudes del empleado', function () {
 
     $this->getJson("/api/v1/bot/empleados/{$this->empleado->id}/solicitudes-vacaciones")
         ->assertOk()
-        ->assertJsonPath('data.0.dias_solicitados', 2);
+        ->assertJsonPath('data.0.dias_solicitados', 2)
+        ->assertJsonPath('data.0.dias', 2)
+        ->assertJsonPath('data.0.texto', '2 días');
 
     $this->getJson("/api/v1/bot/empleados/{$this->empleado->id}/solicitudes-compensaciones")
         ->assertOk()
-        ->assertJsonPath('data.0.horas_solicitadas', 3);
+        ->assertJsonPath('data.0.horas_solicitadas', 3)
+        ->assertJsonPath('data.0.horas', 3)
+        ->assertJsonPath('data.0.minutos', 0)
+        ->assertJsonPath('data.0.texto', '3 horas');
 });

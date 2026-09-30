@@ -63,6 +63,30 @@ GET /empleados/{empleado}/vacaciones
 ```
 
 Incluye los saldos por gestión y `meta.total_dias_disponibles`.
+Cada registro incluye el desglose en días, horas y minutos (jornada de 8 horas)
+más un `texto` legible:
+
+```json
+{
+  "data": [
+    {
+      "gestion": 2025,
+      "dias_disponibles": 8.74,
+      "dias": 8,
+      "horas": 5,
+      "minutos": 55,
+      "texto": "8 días, 5 horas y 55 minutos"
+    }
+  ],
+  "meta": {
+    "total_dias_disponibles": 8.74,
+    "total_dias": 8,
+    "total_horas": 5,
+    "total_minutos": 55,
+    "total_texto": "8 días, 5 horas y 55 minutos"
+  }
+}
+```
 
 ### Consultar compensaciones
 
@@ -71,7 +95,28 @@ GET /empleados/{empleado}/compensaciones
 ```
 
 Incluye solamente saldos con estado `disponible` y
-`meta.total_horas_disponibles`.
+`meta.total_horas_disponibles`, con desglose en horas y minutos:
+
+```json
+{
+  "data": [
+    {
+      "gestion": 2025,
+      "cantidad_horas": 5.5,
+      "horas": 5,
+      "minutos": 30,
+      "texto": "5 horas y 30 minutos",
+      "fecha_registro": "2025-03-01"
+    }
+  ],
+  "meta": {
+    "total_horas_disponibles": 5.5,
+    "total_horas": 5,
+    "total_minutos": 30,
+    "total_texto": "5 horas y 30 minutos"
+  }
+}
+```
 
 ### Consultar solicitudes de vacaciones
 
@@ -79,11 +124,17 @@ Incluye solamente saldos con estado `disponible` y
 GET /empleados/{empleado}/solicitudes-vacaciones
 ```
 
+Cada solicitud incluye `dias_solicitados` más su desglose
+(`dias`, `horas`, `minutos`, `texto`).
+
 ### Consultar solicitudes de compensaciones
 
 ```http
 GET /empleados/{empleado}/solicitudes-compensaciones
 ```
+
+Cada solicitud incluye `horas_solicitadas` más su desglose
+(`horas`, `minutos`, `texto`).
 
 La API es de solo lectura. La recepción del webhook y la gestión de la
 conversación se realizan en el servicio NestJS.

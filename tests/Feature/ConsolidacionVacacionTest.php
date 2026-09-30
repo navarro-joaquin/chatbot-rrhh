@@ -52,7 +52,7 @@ it('registra un historial cuando se crea una vacacion automatica', function () {
     $historial = ConsolidacionVacacion::where('empleado_id', $empleado->id)->first();
 
     expect($historial)->not->toBeNull()
-        ->and($historial->dias_anadidos)->toBe('15.00')
+        ->and($historial->dias_anadidos)->toBe('15.0000')
         ->and($historial->accion)->toBe('creada')
         ->and($historial->origen)->toBe('contrato');
 });
@@ -101,6 +101,6 @@ it('registra un historial cuando se actualiza una vacacion automatica', function
     expect($historiales)->toHaveCount(2)
         ->and($historiales[0]->accion)->toBe('creada')
         ->and($historiales[1]->accion)->toBe('actualizada')
-        ->and($historiales[1]->dias_anadidos)->toBe('20.00')
-        ->and($historiales[1]->dias_totales_despues)->toBe('35.00');
+        ->and($historiales[1]->dias_anadidos)->toBe('20.0000')
+        ->and($historiales[1]->dias_totales_despues)->toBe('35.0000');
 });

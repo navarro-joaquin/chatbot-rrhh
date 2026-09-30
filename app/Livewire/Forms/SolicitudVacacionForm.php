@@ -4,6 +4,7 @@ namespace App\Livewire\Forms;
 
 use App\Models\SolicitudVacacion;
 use App\Services\VacacionService;
+use App\Support\VacacionesTiempo;
 use Carbon\Carbon;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
@@ -25,7 +26,25 @@ class SolicitudVacacionForm extends Form
     public ?float $dias_solicitados = 0;
 
     #[Validate]
+    public ?int $dias_solicitados_dias = 0;
+
+    #[Validate]
+    public ?int $dias_solicitados_horas = 0;
+
+    #[Validate]
+    public ?int $dias_solicitados_minutos = 0;
+
+    #[Validate]
     public ?string $motivo = null;
+
+    public function sincronizarDiasSolicitados(): void
+    {
+        $this->dias_solicitados = VacacionesTiempo::aDias(
+            $this->dias_solicitados_dias ?? 0,
+            $this->dias_solicitados_horas ?? 0,
+            $this->dias_solicitados_minutos ?? 0
+        );
+    }
 
     public function calcularDias(): void
     {
@@ -37,13 +56,15 @@ class SolicitudVacacionForm extends Form
         $fin = Carbon::parse($this->fecha_fin);
 
         if ($inicio->gt($fin)) {
-            $this->dias_solicitados = 0;
+            $this->dias_solicitados_dias = 0;
+            $this->sincronizarDiasSolicitados();
 
             return;
         }
 
         $service = app(VacacionService::class);
-        $this->dias_solicitados = $service->calcularDiasSolicitados($this->fecha_inicio, $this->fecha_fin);
+        $this->dias_solicitados_dias = (int) $service->calcularDiasSolicitados($this->fecha_inicio, $this->fecha_fin);
+        $this->sincronizarDiasSolicitados();
     }
 
     public function rules(): array
@@ -52,7 +73,10 @@ class SolicitudVacacionForm extends Form
             'empleado_id' => ['required', 'exists:empleados,id'],
             'fecha_inicio' => ['required', 'date'],
             'fecha_fin' => ['required', 'date', 'after_or_equal:fecha_inicio'],
-            'dias_solicitados' => ['required', 'numeric', 'min:0.01', 'max:100'],
+            'dias_solicitados_dias' => ['required', 'integer', 'min:0', 'max:100'],
+            'dias_solicitados_horas' => ['required', 'integer', 'min:0', 'max:7'],
+            'dias_solicitados_minutos' => ['required', 'integer', 'min:0', 'max:59'],
+            'dias_solicitados' => ['required', 'numeric', 'min:0.0001', 'max:100'],
             'motivo' => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -64,47 +88,22 @@ class SolicitudVacacionForm extends Form
             'fecha_inicio' => 'fecha de inicio',
             'fecha_fin' => 'fecha de fin',
             'dias_solicitados' => 'dias solicitados',
+            'dias_solicitados_dias' => 'días',
+            'dias_solicitados_horas' => 'horas',
+            'dias_solicitados_minutos' => 'minutos',
             'motivo' => 'motivo',
         ];
     }
 
     public function equivalenciaDias(): ?string
     {
-        if (! is_numeric($this->dias_solicitados) || (float) $this->dias_solicitados <= 0) {
-            return null;
-        }
+        $total = VacacionesTiempo::aDias(
+            $this->dias_solicitados_dias ?? 0,
+            $this->dias_solicitados_horas ?? 0,
+            $this->dias_solicitados_minutos ?? 0
+        );
 
-        $totalMinutos = (int) round((float) $this->dias_solicitados * 8 * 60);
-        $dias = intdiv($totalMinutos, 480);
-        $resto = $totalMinutos % 480;
-        $horas = intdiv($resto, 60);
-        $minutos = $resto % 60;
-
-        $partes = [];
-
-        if ($dias > 0) {
-            $partes[] = $dias.' '.($dias === 1 ? 'día' : 'días');
-        }
-
-        if ($horas > 0) {
-            $partes[] = $horas.' '.($horas === 1 ? 'hora' : 'horas');
-        }
-
-        if ($minutos > 0) {
-            $partes[] = $minutos.' '.($minutos === 1 ? 'minuto' : 'minutos');
-        }
-
-        if ($partes === []) {
-            return '0 días';
-        }
-
-        if (count($partes) === 1) {
-            return $partes[0];
-        }
-
-        $ultima = array_pop($partes);
-
-        return implode(', ', $partes).' y '.$ultima;
+        return VacacionesTiempo::aTextoDias($total);
     }
 
     public function setSolicitud(SolicitudVacacion $solicitud): void
@@ -114,11 +113,18 @@ class SolicitudVacacionForm extends Form
         $this->fecha_inicio = $solicitud->fecha_inicio?->toDateString();
         $this->fecha_fin = $solicitud->fecha_fin?->toDateString();
         $this->dias_solicitados = (float) $solicitud->dias_solicitados;
+
+        $partes = VacacionesTiempo::aPartesDias((float) $solicitud->dias_solicitados);
+        $this->dias_solicitados_dias = $partes['dias'];
+        $this->dias_solicitados_horas = $partes['horas'];
+        $this->dias_solicitados_minutos = $partes['minutos'];
+
         $this->motivo = $solicitud->motivo;
     }
 
     public function save(): void
     {
+        $this->sincronizarDiasSolicitados();
         $this->validate();
 
         $service = app(VacacionService::class);

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('empleado_id')->constrained('empleados')->onDelete('cascade');
             $table->foreignId('gestion_id')->constrained('gestiones')->onDelete('cascade');
-            $table->decimal('dias_disponibles', 5, 2)->default(0);
+            $table->decimal('dias_disponibles', 8, 4)->default(0);
             $table->timestamps();
         });
     }

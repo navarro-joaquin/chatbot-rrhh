@@ -59,8 +59,8 @@ final class HistorialVacacionTable extends PowerGridComponent
             ->add('evento')
             ->add('fecha_formatted', fn ($model) => Carbon::parse($model->fecha)->format('d/m/Y'))
             ->add('fecha_reconocida_ingreso_formatted', fn ($model) => $model->fecha_reconocida_ingreso ? Carbon::parse($model->fecha_reconocida_ingreso)->format('d/m/Y') : '-')
-            ->add('dias', fn ($model) => number_format($model->dias, 2))
-            ->add('saldo', fn ($model) => number_format($model->saldo, 2))
+            ->add('dias', fn ($model) => number_format($model->dias, 4))
+            ->add('saldo', fn ($model) => number_format($model->saldo, 4))
             ->add('desde_formatted', fn ($model) => $model->desde ? Carbon::parse($model->desde)->format('d/m/Y') : '-')
             ->add('hasta_formatted', fn ($model) => $model->hasta ? Carbon::parse($model->hasta)->format('d/m/Y') : '-')
             ->add('observacion');
