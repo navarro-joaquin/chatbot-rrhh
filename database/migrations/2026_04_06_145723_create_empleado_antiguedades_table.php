@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('empleado_id')->constrained('empleados')->onDelete('cascade');
             $table->foreignId('contrato_id')->nullable()->constrained('empleado_contratos')->nullOnDelete();
             $table->date('fecha_reconocida');
+            $table->date('vigencia_desde')->nullable();
             $table->enum('origen', ['Contrato', 'Regularizacion', 'Resolucion Manual'])->default('Contrato');
             $table->string('observaciones')->nullable();
             $table->boolean('vigente')->default(true);
