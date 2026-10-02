@@ -5,6 +5,7 @@ namespace App\Livewire\Forms;
 use App\Models\Compensacion;
 use App\Models\Empleado;
 use App\Models\EmpleadoContrato;
+use App\Support\VacacionesTiempo;
 use Closure;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
@@ -24,6 +25,12 @@ class CompensacionForm extends Form
 
     #[Validate]
     public ?float $cantidad_horas = 0;
+
+    #[Validate]
+    public ?int $cantidad_horas_horas = 0;
+
+    #[Validate]
+    public ?int $cantidad_horas_minutos = 0;
 
     #[Validate]
     public ?string $descripcion = '';
@@ -59,6 +66,8 @@ class CompensacionForm extends Form
                 },
             ],
             'cantidad_horas' => ['required', 'numeric', 'min:0', 'max:999.99'],
+            'cantidad_horas_horas' => ['required', 'integer', 'min:0', 'max:999'],
+            'cantidad_horas_minutos' => ['required', 'integer', 'min:0', 'max:59'],
             'descripcion' => ['nullable', 'string', 'max:255'],
             'fecha_registro' => ['required', 'date'],
             'estado' => ['required', 'in:disponible,utilizado,vencido'],
@@ -72,10 +81,27 @@ class CompensacionForm extends Form
             'gestion_id' => 'gestion',
             'contrato_id' => 'contrato vigente',
             'cantidad_horas' => 'cantidad de horas',
+            'cantidad_horas_horas' => 'horas',
+            'cantidad_horas_minutos' => 'minutos',
             'descripcion' => 'descripcion',
             'fecha_registro' => 'fecha de registro',
             'estado' => 'estado',
         ];
+    }
+
+    public function sincronizarCantidadHoras(): void
+    {
+        $this->cantidad_horas = round(
+            ($this->cantidad_horas_horas ?? 0) + ($this->cantidad_horas_minutos ?? 0) / 60,
+            4
+        );
+    }
+
+    public function equivalenciaHoras(): ?string
+    {
+        return VacacionesTiempo::aTextoHoras(
+            ($this->cantidad_horas_horas ?? 0) + ($this->cantidad_horas_minutos ?? 0) / 60
+        );
     }
 
     public function setCompensacion(Compensacion $compensacion): void
@@ -85,6 +111,11 @@ class CompensacionForm extends Form
         $this->gestion_id = $compensacion->gestion_id;
         $this->contrato_id = $compensacion->contrato_id;
         $this->cantidad_horas = (float) $compensacion->cantidad_horas;
+
+        $partes = VacacionesTiempo::aPartesHoras((float) $compensacion->cantidad_horas);
+        $this->cantidad_horas_horas = $partes['horas'];
+        $this->cantidad_horas_minutos = $partes['minutos'];
+
         $this->descripcion = $compensacion->descripcion;
         $this->fecha_registro = $compensacion->fecha_registro;
         $this->estado = $compensacion->estado;
@@ -111,9 +142,10 @@ class CompensacionForm extends Form
             $this->syncContratoVigente();
         }
 
+        $this->sincronizarCantidadHoras();
         $this->validate();
 
-        $data = $this->except('compensacion');
+        $data = $this->except('compensacion', 'cantidad_horas_horas', 'cantidad_horas_minutos');
 
         if ($this->compensacion) {
             $this->compensacion->update($data);

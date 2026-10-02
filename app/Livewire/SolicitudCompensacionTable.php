@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Empleado;
 use App\Models\SolicitudCompensacion;
+use App\Support\VacacionesTiempo;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
@@ -29,7 +30,8 @@ final class SolicitudCompensacionTable extends PowerGridComponent
     {
         return [
             PowerGrid::header()
-                ->showSearchInput(),
+                ->showSearchInput()
+                ->showToggleColumns(),
             PowerGrid::footer()
                 ->showPerPage()
                 ->showRecordCount(),
@@ -43,12 +45,20 @@ final class SolicitudCompensacionTable extends PowerGridComponent
             ->with(['empleado']);
     }
 
+    public function relationSearch(): array
+    {
+        return [
+            'empleado' => 'nombre_completo',
+        ];
+    }
+
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
             ->add('empleado_nombre', fn (SolicitudCompensacion $model) => $model->empleado->nombre_completo)
             ->add('fecha_compensacion_formatted', fn (SolicitudCompensacion $model) => $model->fecha_compensacion->format('d/m/Y'))
             ->add('horas_solicitadas')
+            ->add('equivalencia_horas', fn (SolicitudCompensacion $model) => VacacionesTiempo::aTextoHoras((float) $model->horas_solicitadas) ?? '—')
             ->add('motivo')
             ->add('estado_label', fn (SolicitudCompensacion $model) => ucfirst($model->estado));
     }
@@ -58,13 +68,20 @@ final class SolicitudCompensacionTable extends PowerGridComponent
         $columns = [
             Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
                 ->searchable()
-                ->sortable(),
+                ->sortable()
+                ->sortUsing(fn ($query, $direction) => $query->orderBy(
+                    Empleado::select('nombre_completo')->whereColumn('empleados.id', 'solicitudes_compensaciones.empleado_id'),
+                    $direction
+                )),
 
             Column::make('Fecha', 'fecha_compensacion_formatted', 'fecha_compensacion')
                 ->sortable(),
 
             Column::make('Horas', 'horas_solicitadas')
                 ->sortable(),
+
+            Column::make('Equivalencia', 'equivalencia_horas')
+                ->hidden(isHidden: true, isForceHidden: false),
 
             Column::make('Motivo', 'motivo')
                 ->searchable(),

@@ -4,6 +4,7 @@ namespace App\Livewire\Forms;
 
 use App\Models\SolicitudCompensacion;
 use App\Services\CompensacionService;
+use App\Support\VacacionesTiempo;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -21,14 +22,37 @@ class SolicitudCompensacionForm extends Form
     public ?float $horas_solicitadas = 0;
 
     #[Validate]
+    public ?int $horas_solicitadas_horas = 0;
+
+    #[Validate]
+    public ?int $horas_solicitadas_minutos = 0;
+
+    #[Validate]
     public ?string $motivo = null;
+
+    public function sincronizarHorasSolicitadas(): void
+    {
+        $this->horas_solicitadas = round(
+            ($this->horas_solicitadas_horas ?? 0) + ($this->horas_solicitadas_minutos ?? 0) / 60,
+            4
+        );
+    }
+
+    public function equivalenciaHoras(): ?string
+    {
+        return VacacionesTiempo::aTextoHoras(
+            ($this->horas_solicitadas_horas ?? 0) + ($this->horas_solicitadas_minutos ?? 0) / 60
+        );
+    }
 
     public function rules(): array
     {
         return [
             'empleado_id' => ['required', 'exists:empleados,id'],
             'fecha_compensacion' => ['required', 'date'],
-            'horas_solicitadas' => ['required', 'numeric', 'min:0.5', 'max:24'],
+            'horas_solicitadas_horas' => ['required', 'integer', 'min:0', 'max:24'],
+            'horas_solicitadas_minutos' => ['required', 'integer', 'min:0', 'max:59'],
+            'horas_solicitadas' => ['required', 'numeric', 'min:0.0001', 'max:24'],
             'motivo' => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -39,6 +63,8 @@ class SolicitudCompensacionForm extends Form
             'empleado_id' => 'empleado',
             'fecha_compensacion' => 'fecha de compensacion',
             'horas_solicitadas' => 'horas solicitadas',
+            'horas_solicitadas_horas' => 'horas',
+            'horas_solicitadas_minutos' => 'minutos',
             'motivo' => 'motivo',
         ];
     }
@@ -49,11 +75,17 @@ class SolicitudCompensacionForm extends Form
         $this->empleado_id = $solicitud->empleado_id;
         $this->fecha_compensacion = $solicitud->fecha_compensacion?->toDateString();
         $this->horas_solicitadas = (float) $solicitud->horas_solicitadas;
+
+        $partes = VacacionesTiempo::aPartesHoras((float) $solicitud->horas_solicitadas);
+        $this->horas_solicitadas_horas = $partes['horas'];
+        $this->horas_solicitadas_minutos = $partes['minutos'];
+
         $this->motivo = $solicitud->motivo;
     }
 
     public function save(): void
     {
+        $this->sincronizarHorasSolicitadas();
         $this->validate();
 
         $service = app(CompensacionService::class);

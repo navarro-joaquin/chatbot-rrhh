@@ -98,9 +98,24 @@ new class extends Component
                     <flux:error name="form.fecha_compensacion" />
                 </flux:field>
 
+                <div class="grid grid-cols-2 gap-2">
+                    <flux:field>
+                        <flux:label>Horas</flux:label>
+                        <flux:input type="number" min="0" max="24" step="1" wire:model.live.debounce.800ms="form.horas_solicitadas_horas" placeholder="Ej: 2" />
+                        <flux:error name="form.horas_solicitadas_horas" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Minutos</flux:label>
+                        <flux:input type="number" min="0" max="59" step="1" wire:model.live.debounce.800ms="form.horas_solicitadas_minutos" placeholder="Ej: 30" />
+                        <flux:error name="form.horas_solicitadas_minutos" />
+                    </flux:field>
+                </div>
+
                 <flux:field>
-                    <flux:label>Horas a solicitar</flux:label>
-                    <flux:input type="number" min="0.5" step="0.5" wire:model="form.horas_solicitadas" placeholder="Ej: 4" />
+                    @if($form->equivalenciaHoras())
+                        <flux:description>Equivale a {{ $form->equivalenciaHoras() }}.</flux:description>
+                    @endif
                     <flux:error name="form.horas_solicitadas" />
                 </flux:field>
 

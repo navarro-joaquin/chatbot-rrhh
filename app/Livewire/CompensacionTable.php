@@ -3,6 +3,9 @@
 namespace App\Livewire;
 
 use App\Models\Compensacion;
+use App\Models\Empleado;
+use App\Models\Gestion;
+use App\Support\VacacionesTiempo;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
@@ -28,7 +31,8 @@ final class CompensacionTable extends PowerGridComponent
     {
         return [
             PowerGrid::header()
-                ->showSearchInput(),
+                ->showSearchInput()
+                ->showToggleColumns(),
             PowerGrid::footer()
                 ->showPerPage()
                 ->showRecordCount(),
@@ -42,6 +46,14 @@ final class CompensacionTable extends PowerGridComponent
             ->with(['empleado', 'gestion', 'contrato']);
     }
 
+    public function relationSearch(): array
+    {
+        return [
+            'empleado' => 'nombre_completo',
+            'gestion' => 'anio',
+        ];
+    }
+
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
@@ -49,6 +61,7 @@ final class CompensacionTable extends PowerGridComponent
             ->add('gestion_anio', fn (Compensacion $model) => $model->gestion->anio)
             ->add('contrato_ref', fn (Compensacion $model) => $model->contrato?->numero_contrato ?: ($model->contrato?->nro_item ?? '-'))
             ->add('cantidad_horas')
+            ->add('equivalencia_horas', fn (Compensacion $model) => VacacionesTiempo::aTextoHoras((float) $model->cantidad_horas) ?? '—')
             ->add('descripcion')
             ->add('fecha_registro_formatted', fn (Compensacion $model) => $model->fecha_registro ? date('d/m/Y', strtotime($model->fecha_registro)) : '')
             ->add('estado_label', fn (Compensacion $model) => ucfirst($model->estado));
@@ -61,18 +74,28 @@ final class CompensacionTable extends PowerGridComponent
         if (! $this->isDetailView) {
             $columns[] = Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
                 ->searchable()
-                ->sortable();
+                ->sortable()
+                ->sortUsing(fn ($query, $direction) => $query->orderBy(
+                    Empleado::select('nombre_completo')->whereColumn('empleados.id', 'compensaciones.empleado_id'),
+                    $direction
+                ));
         }
 
         $columns[] = Column::make('Gestion', 'gestion_anio', 'gestiones.anio')
             ->searchable()
-            ->sortable();
+            ->sortable()
+            ->sortUsing(fn ($query, $direction) => $query->orderBy(
+                Gestion::select('anio')->whereColumn('gestiones.id', 'compensaciones.gestion_id'),
+                $direction
+            ));
 
-        $columns[] = Column::make('Contrato', 'contrato_ref')
-            ->searchable();
+        $columns[] = Column::make('Contrato', 'contrato_ref');
 
         $columns[] = Column::make('Cant. Horas', 'cantidad_horas')
             ->sortable();
+
+        $columns[] = Column::make('Equivalencia', 'equivalencia_horas')
+            ->hidden(isHidden: true, isForceHidden: false);
 
         $columns[] = Column::make('Fecha Reg.', 'fecha_registro_formatted', 'fecha_registro')
             ->sortable();

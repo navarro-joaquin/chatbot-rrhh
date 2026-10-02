@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Empleado;
 use App\Models\SolicitudVacacion;
+use App\Support\VacacionesTiempo;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
@@ -29,7 +30,8 @@ final class SolicitudVacacionTable extends PowerGridComponent
     {
         return [
             PowerGrid::header()
-                ->showSearchInput(),
+                ->showSearchInput()
+                ->showToggleColumns(),
             PowerGrid::footer()
                 ->showPerPage()
                 ->showRecordCount(),
@@ -43,6 +45,13 @@ final class SolicitudVacacionTable extends PowerGridComponent
             ->with(['empleado']);
     }
 
+    public function relationSearch(): array
+    {
+        return [
+            'empleado' => 'nombre_completo',
+        ];
+    }
+
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
@@ -51,6 +60,7 @@ final class SolicitudVacacionTable extends PowerGridComponent
             ->add('fecha_inicio_formatted', fn (SolicitudVacacion $model) => $model->fecha_inicio->format('d/m/Y'))
             ->add('fecha_fin_formatted', fn (SolicitudVacacion $model) => $model->fecha_fin->format('d/m/Y'))
             ->add('dias_solicitados')
+            ->add('equivalencia_dias', fn (SolicitudVacacion $model) => VacacionesTiempo::aTextoDias((float) $model->dias_solicitados) ?? '—')
             ->add('motivo');
         // ->add('estado');
     }
@@ -61,7 +71,11 @@ final class SolicitudVacacionTable extends PowerGridComponent
 
             Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
                 ->searchable()
-                ->sortable(),
+                ->sortable()
+                ->sortUsing(fn ($query, $direction) => $query->orderBy(
+                    Empleado::select('nombre_completo')->whereColumn('empleados.id', 'solicitudes_vacaciones.empleado_id'),
+                    $direction
+                )),
 
             Column::make('Desde', 'fecha_inicio_formatted', 'fecha_inicio')
                 ->sortable(),
@@ -71,6 +85,9 @@ final class SolicitudVacacionTable extends PowerGridComponent
 
             Column::make('Días', 'dias_solicitados')
                 ->sortable(),
+
+            Column::make('Equivalencia', 'equivalencia_dias')
+                ->hidden(isHidden: true, isForceHidden: false),
 
             Column::make('Motivo', 'motivo')
                 ->searchable(),

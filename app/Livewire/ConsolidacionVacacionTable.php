@@ -40,7 +40,10 @@ final class ConsolidacionVacacionTable extends PowerGridComponent
 
     public function relationSearch(): array
     {
-        return [];
+        return [
+            'empleado' => 'nombre_completo',
+            'gestion' => 'anio',
+        ];
     }
 
     public function fields(): PowerGridFields
@@ -59,10 +62,18 @@ final class ConsolidacionVacacionTable extends PowerGridComponent
         return [
             Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
                 ->searchable()
-                ->sortable(),
+                ->sortable()
+                ->sortUsing(fn ($query, $direction) => $query->orderBy(
+                    Empleado::select('nombre_completo')->whereColumn('empleados.id', 'consolidacion_vacaciones.empleado_id'),
+                    $direction
+                )),
             Column::make('Gestión', 'gestion_anio', 'gestiones.anio')
                 ->searchable()
-                ->sortable(),
+                ->sortable()
+                ->sortUsing(fn ($query, $direction) => $query->orderBy(
+                    Gestion::select('anio')->whereColumn('gestiones.id', 'consolidacion_vacaciones.gestion_id'),
+                    $direction
+                )),
             Column::make('Días añadidos', 'dias_anadidos')
                 ->sortable()
                 ->searchable(),

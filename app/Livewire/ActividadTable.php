@@ -42,18 +42,18 @@ final class ActividadTable extends PowerGridComponent
             ->add('created_at_formatted', fn (Activity $model) => $model->created_at->format('d/m/Y H:i'))
             ->add('causer', fn (Activity $model) => $model->causer?->name ?? 'Sistema')
             ->add('event')
-            ->add('subject_type', fn (Activity $model) => class_basename($model->subject_type ?? '') . " (#{$model->subject_id})")
+            ->add('subject_type', fn (Activity $model) => class_basename($model->subject_type ?? '')." (#{$model->subject_id})")
             ->add('cambios', function (Activity $model) {
                 // Obtener el JSON crudo directamente de la BD
-                $raw        = $model->getRawOriginal('attribute_changes');
+                $raw = $model->getRawOriginal('attribute_changes');
                 $properties = json_decode($raw, true) ?? [];
 
                 \Log::info('Properties decoded', $properties); // temporal para verificar
 
                 if ($model->event === 'updated') {
                     $attributes = $properties['attributes'] ?? [];
-                    $old        = $properties['old'] ?? [];
-                    $cambios    = [];
+                    $old = $properties['old'] ?? [];
+                    $cambios = [];
 
                     foreach ($attributes as $campo => $nuevo) {
                         if (in_array($campo, ['updated_at', 'created_at', 'id'])) {
@@ -62,18 +62,18 @@ final class ActividadTable extends PowerGridComponent
 
                         if (array_key_exists($campo, $old) && $old[$campo] != $nuevo) {
                             $strAnterior = is_scalar($old[$campo]) ? (string) $old[$campo] : json_encode($old[$campo]);
-                            $strNuevo    = is_scalar($nuevo) ? (string) $nuevo : json_encode($nuevo);
-                            $cambios[]   = "{$campo}: {$strAnterior} → {$strNuevo}";
+                            $strNuevo = is_scalar($nuevo) ? (string) $nuevo : json_encode($nuevo);
+                            $cambios[] = "{$campo}: {$strAnterior} → {$strNuevo}";
                         }
                     }
 
-                    return !empty($cambios) ? implode(' | ', $cambios) : 'Sin cambios relevantes';
+                    return ! empty($cambios) ? implode(' | ', $cambios) : 'Sin cambios relevantes';
                 }
 
-                return match($model->event) {
+                return match ($model->event) {
                     'created' => 'Registro creado',
                     'deleted' => 'Registro eliminado',
-                    default   => '-',
+                    default => '-',
                 };
             });
     }
@@ -84,8 +84,7 @@ final class ActividadTable extends PowerGridComponent
             Column::make('Fecha', 'created_at_formatted', 'created_at')
                 ->sortable(),
 
-            Column::make('Usuario', 'causer')
-                ->searchable(),
+            Column::make('Usuario', 'causer'),
 
             Column::make('Evento', 'event')
                 ->sortable(),

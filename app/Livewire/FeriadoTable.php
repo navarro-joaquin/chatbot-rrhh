@@ -59,7 +59,11 @@ final class FeriadoTable extends PowerGridComponent
                 ->sortable(),
 
             Column::make('Gestion', 'gestion_anio')
-                ->sortable(),
+                ->sortable()
+                ->sortUsing(fn ($query, $direction) => $query->orderBy(
+                    Gestion::select('anio')->whereColumn('gestiones.id', 'feriados.gestion_id'),
+                    $direction
+                )),
 
             Column::make('Estado', 'estado_label', 'estado')
                 ->sortable(),

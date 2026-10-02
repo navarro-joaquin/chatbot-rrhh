@@ -27,6 +27,7 @@ class StartupSeeder extends Seeder
             ['anio' => '2024'],
             ['anio' => '2025'],
             ['anio' => '2026'],
+            ['anio' => '2027'],
         ];
 
         $antiguedades = [

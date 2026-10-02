@@ -165,9 +165,24 @@ new class extends Component
                     <flux:error name="form.gestion_id" />
                 </flux:field>
 
+                <div class="grid grid-cols-2 gap-2">
+                    <flux:field>
+                        <flux:label>Horas</flux:label>
+                        <flux:input type="number" min="0" max="999" step="1" wire:model.live.debounce.800ms="form.cantidad_horas_horas" placeholder="Ej: 5" />
+                        <flux:error name="form.cantidad_horas_horas" />
+                    </flux:field>
+
+                    <flux:field>
+                        <flux:label>Minutos</flux:label>
+                        <flux:input type="number" min="0" max="59" step="1" wire:model.live.debounce.800ms="form.cantidad_horas_minutos" placeholder="Ej: 30" />
+                        <flux:error name="form.cantidad_horas_minutos" />
+                    </flux:field>
+                </div>
+
                 <flux:field>
-                    <flux:label>Horas</flux:label>
-                    <flux:input type="number" min="0.5" step="0.5" wire:model="form.cantidad_horas" placeholder="Ej: 8" />
+                    @if($form->equivalenciaHoras())
+                        <flux:description>Equivale a {{ $form->equivalenciaHoras() }}.</flux:description>
+                    @endif
                     <flux:error name="form.cantidad_horas" />
                 </flux:field>
 

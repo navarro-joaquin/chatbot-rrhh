@@ -61,8 +61,7 @@ final class EmpleadoAntiguedadTable extends PowerGridComponent
             Column::make('Vigencia desde', 'vigencia_desde_formatted', 'vigencia_desde')
                 ->sortable(),
 
-            Column::make('Contrato', 'contrato_ref')
-                ->searchable(),
+            Column::make('Contrato', 'contrato_ref'),
 
             Column::make('Origen', 'origen')
                 ->searchable()

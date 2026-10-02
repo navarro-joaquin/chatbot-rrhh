@@ -216,7 +216,7 @@
                             <div class="flex items-center justify-between gap-3">
                                 <p class="font-medium text-zinc-900 dark:text-white">{{ $vacacion->nombre_completo }}</p>
                                 <span class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300">
-                                    {{ number_format((float) $vacacion->total_dias_disponibles, 4) }} dias
+                                    {{ \App\Support\VacacionesTiempo::aTextoDias((float) $vacacion->total_dias_disponibles) ?? '—' }}
                                 </span>
                             </div>
                         </div>
