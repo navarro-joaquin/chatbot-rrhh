@@ -365,6 +365,23 @@ class VacacionService
             return null;
         }
 
+        $antiguedad = $empleado->antiguedadVigente;
+
+        if ($antiguedad?->fecha_reconocida) {
+            $fechaReconocimiento = $this->obtenerFechaVigenciaReconocimiento($antiguedad, $fecha);
+
+            if ($fechaReconocimiento->lessThanOrEqualTo($fecha)) {
+                $this->debug($debugger, 'Contrato descartado porque ya rige la antiguedad reconocida', [
+                    'empleado_id' => $empleado->id,
+                    'fecha_evaluada' => $fecha->toDateString(),
+                    'fecha_registro_reconocimiento' => $fechaReconocimiento->toDateString(),
+                    'fecha_reconocida' => $antiguedad->fecha_reconocida->toDateString(),
+                ]);
+
+                return null;
+            }
+        }
+
         return $this->crearCandidato($contrato->fecha_inicio->copy(), $aniversario, 'contrato');
     }
 
@@ -561,12 +578,17 @@ class VacacionService
         ]);
 
         $diasActuales = (float) ($vacacion->dias_disponibles ?? 0);
+        $diasConsolidados = (float) ConsolidacionVacacion::query()
+            ->where('empleado_id', $empleado->id)
+            ->where('gestion_id', $gestion->id)
+            ->sum('dias_anadidos');
 
-        if ($vacacion->exists && $diasActuales >= $candidato['dias']) {
+        if (($vacacion->exists && $diasActuales >= $candidato['dias']) || $diasConsolidados >= $candidato['dias']) {
             $this->debug($debugger, 'Vacacion omitida porque ya existe una igual o mejor', [
                 'empleado_id' => $empleado->id,
                 'gestion' => $gestion->anio,
                 'dias_actuales' => $diasActuales,
+                'dias_consolidados' => $diasConsolidados,
                 'dias_candidato' => $candidato['dias'],
             ]);
 

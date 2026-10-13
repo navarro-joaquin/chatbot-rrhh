@@ -307,7 +307,7 @@ it('acumula la segunda consolidacion aunque exista consumo previo en la misma ge
         ->and(Vacacion::where('empleado_id', $empleado->id)->count())->toBe(1);
 });
 
-it('escenario 2 mantiene consolidaciones en gestiones distintas', function () {
+it('escenario 2 mantiene consolidaciones en gestiones distintas sin generar duplicados en enero 2025', function () {
     $empleado = crearEmpleadoConContratoIndefinido(
         nombre: 'Escenario 2',
         sufijo: '2002',
@@ -322,14 +322,23 @@ it('escenario 2 mantiene consolidaciones en gestiones distintas', function () {
 
     $service = app(VacacionService::class);
 
+    // 1. Procesamiento en Enero 2024 (Consolida la primera gestión de 15 días)
     $enero2024 = $service->procesarVacacionesAutomaticas(Carbon::parse('2024-01-03'));
+
+    // 2. Procesamiento en Enero 2025 (No cumple aniversario aún por la antigüedad reconocida)
+    $enero2025 = $service->procesarVacacionesAutomaticas(Carbon::parse('2025-01-03'));
+
+    // 3. Procesamiento en Febrero 2025 (Cumple aniversario por antigüedad reconocida y consolida 20 días)
     $febrero2025 = $service->procesarVacacionesAutomaticas(Carbon::parse('2025-02-08'));
 
+    // Obtención de registros consolidados
     $vacacion2024 = obtenerVacacionPorGestion($empleado->id, 2024);
     $vacacion2025 = obtenerVacacionPorGestion($empleado->id, 2025);
 
+    // Assertions
     expect($enero2024)->toHaveCount(1)
         ->and($enero2024[0]['dias'])->toBe(15.0)
+        ->and($enero2025)->toBeEmpty()
         ->and($febrero2025)->toHaveCount(1)
         ->and($febrero2025[0]['dias'])->toBe(20.0)
         ->and((float) $vacacion2024->dias_disponibles)->toBe(15.0)
@@ -370,7 +379,7 @@ it('escenario 3 protege el derecho cuando el reconocimiento desplaza la siguient
         ->and(Vacacion::where('empleado_id', $empleado->id)->count())->toBe(2);
 });
 
-it('Ejemplo: Escenario3', function() {
+it('Ejemplo: Escenario3', function () {
     $gestion2023 = Gestion::create(['anio' => '2023']);
     $gestion2024 = Gestion::create(['anio' => '2024']);
     $gestion2025 = Gestion::create(['anio' => '2025']);

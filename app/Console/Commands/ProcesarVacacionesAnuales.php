@@ -4,18 +4,30 @@ namespace App\Console\Commands;
 
 use App\Services\VacacionService;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ProcesarVacacionesAnuales extends Command
 {
+    /**
+     * Clave de caché con la última fecha procesada por la ejecución programada.
+     */
+    public const CACHE_ULTIMA_FECHA = 'vacaciones-anuales:ultima-fecha-procesada';
+
+    /**
+     * Máximo de días anteriores que se recuperan si el proceso dejó de ejecutarse.
+     */
+    public const MAX_DIAS_RECUPERACION = 366;
+
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
     protected $signature = 'app:procesar-vacaciones-anuales
-        {--fecha= : Fecha a procesar en formato YYYY-MM-DD}
+        {--fecha= : Procesa solo esta fecha (YYYY-MM-DD), sin recuperar días pendientes}
         {--debug : Muestra el detalle de evaluacion por empleado}';
 
     /**
@@ -30,23 +42,46 @@ class ProcesarVacacionesAnuales extends Command
      */
     public function handle(VacacionService $service): void
     {
-        $today = $this->option('fecha')
+        $fechaManual = $this->option('fecha')
             ? Carbon::parse((string) $this->option('fecha'))->startOfDay()
-            : Carbon::today();
+            : null;
+        $today = Carbon::today();
         $debug = (bool) $this->option('debug');
 
-        $this->info("Procesando vacaciones para el {$today->format('d/m/Y')}...");
+        $fechas = $fechaManual
+            ? [$fechaManual]
+            : CarbonPeriod::create($this->resolverFechaInicial($today), $today)->toArray();
 
-        $resultados = $service->procesarVacacionesAutomaticas(
-            $today,
-            $debug ? function (string $mensaje, array $contexto = []): void {
-                $detalle = empty($contexto)
-                    ? ''
-                    : ' '.json_encode($contexto, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $resultados = [];
 
-                $this->line("[debug] {$mensaje}{$detalle}");
-            } : null
-        );
+        foreach ($fechas as $fecha) {
+            $this->info("Procesando vacaciones para el {$fecha->format('d/m/Y')}...");
+
+            $resultadosDelDia = $service->procesarVacacionesAutomaticas(
+                Carbon::instance($fecha),
+                $debug ? function (string $mensaje, array $contexto = []): void {
+                    $detalle = empty($contexto)
+                        ? ''
+                        : ' '.json_encode($contexto, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+                    $this->line("[debug] {$mensaje}{$detalle}");
+                } : null
+            );
+
+            foreach ($resultadosDelDia as $resultado) {
+                $mensaje = "{$resultado['accion']} vacación para {$resultado['empleado']} ".
+                    "en la gestión {$resultado['gestion']} con {$resultado['dias']} días ({$resultado['origen']}).";
+
+                $this->info($mensaje);
+                Log::info('Vacaciones automáticas procesadas.', $resultado + ['fecha_proceso' => $fecha->toDateString()]);
+            }
+
+            $resultados = [...$resultados, ...$resultadosDelDia];
+        }
+
+        if (! $fechaManual) {
+            Cache::forever(self::CACHE_ULTIMA_FECHA, $today->toDateString());
+        }
 
         if (empty($resultados)) {
             $this->info('No hay consolidaciones de vacaciones para procesar hoy.');
@@ -54,14 +89,40 @@ class ProcesarVacacionesAnuales extends Command
             return;
         }
 
-        foreach ($resultados as $resultado) {
-            $mensaje = "{$resultado['accion']} vacación para {$resultado['empleado']} ".
-                "en la gestión {$resultado['gestion']} con {$resultado['dias']} días ({$resultado['origen']}).";
+        $this->info('Proceso finalizado.');
+    }
 
-            $this->info($mensaje);
-            Log::info('Vacaciones automáticas procesadas.', $resultado);
+    /**
+     * Devuelve el día siguiente a la última ejecución registrada, para recuperar
+     * los aniversarios de los días en que el proceso no llegó a ejecutarse.
+     */
+    private function resolverFechaInicial(Carbon $today): Carbon
+    {
+        $ultimaFecha = Cache::get(self::CACHE_ULTIMA_FECHA);
+
+        if (! is_string($ultimaFecha)) {
+            return $today->copy();
         }
 
-        $this->info('Proceso finalizado.');
+        $desde = Carbon::parse($ultimaFecha)->startOfDay()->addDay();
+
+        if ($desde->greaterThan($today)) {
+            return $today->copy();
+        }
+
+        $limite = $today->copy()->subDays(self::MAX_DIAS_RECUPERACION);
+
+        if ($desde->lessThan($limite)) {
+            $this->warn("La última ejecución fue el {$ultimaFecha}; solo se recuperan los últimos ".self::MAX_DIAS_RECUPERACION.' días.');
+            Log::warning('Recuperación de vacaciones anuales truncada.', ['ultima_fecha' => $ultimaFecha]);
+
+            return $limite;
+        }
+
+        if ($desde->lessThan($today)) {
+            $this->warn("Recuperando días sin procesar desde el {$desde->format('d/m/Y')}.");
+        }
+
+        return $desde;
     }
 }
