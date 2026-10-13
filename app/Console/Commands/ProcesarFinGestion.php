@@ -9,18 +9,30 @@ use Illuminate\Console\Command;
 
 class ProcesarFinGestion extends Command
 {
-    protected $signature = 'app:procesar-fin-gestion';
+    protected $signature = 'app:procesar-fin-gestion
+        {--anio= : Gestión a cerrar; por defecto la del año en curso}';
 
     protected $description = 'Comando para procesar el fin de la gestión actual';
 
-    public function handle(): void
+    public function handle(): int
     {
-        $today = Carbon::today();
+        $anio = (int) ($this->option('anio') ?: Carbon::today()->year);
 
-        $gestion = Gestion::where('anio', $today->format('Y'))->first();
+        $gestion = Gestion::firstWhere('anio', $anio);
+
+        if (! $gestion) {
+            $this->warn("No existe la gestión {$anio}; no hay nada que procesar.");
+
+            return self::SUCCESS;
+        }
+
         $this->info('Gestion: '.$gestion->anio);
 
-        $feriados = Feriado::where('gestion_id', $gestion->id)->get();
+        $feriados = Feriado::query()
+            ->where('gestion_id', $gestion->id)
+            ->where('estado', true)
+            ->get();
+
         foreach ($feriados as $feriado) {
             $feriado->update(['estado' => false]);
         }
@@ -28,5 +40,7 @@ class ProcesarFinGestion extends Command
         $this->info('Feriados: '.$feriados->count());
 
         $this->info('Proceso finalizado');
+
+        return self::SUCCESS;
     }
 }

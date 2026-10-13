@@ -2,19 +2,19 @@
 
 namespace App\Console\Commands;
 
+use App\Models\EjecucionProceso;
 use App\Services\VacacionService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class ProcesarVacacionesAnuales extends Command
 {
     /**
-     * Clave de caché con la última fecha procesada por la ejecución programada.
+     * Nombre con el que se registra la última fecha procesada por la ejecución programada.
      */
-    public const CACHE_ULTIMA_FECHA = 'vacaciones-anuales:ultima-fecha-procesada';
+    public const PROCESO = 'vacaciones-anuales';
 
     /**
      * Máximo de días anteriores que se recuperan si el proceso dejó de ejecutarse.
@@ -80,7 +80,7 @@ class ProcesarVacacionesAnuales extends Command
         }
 
         if (! $fechaManual) {
-            Cache::forever(self::CACHE_ULTIMA_FECHA, $today->toDateString());
+            EjecucionProceso::registrar(self::PROCESO, $today);
         }
 
         if (empty($resultados)) {
@@ -98,9 +98,9 @@ class ProcesarVacacionesAnuales extends Command
      */
     private function resolverFechaInicial(Carbon $today): Carbon
     {
-        $ultimaFecha = Cache::get(self::CACHE_ULTIMA_FECHA);
+        $ultimaFecha = EjecucionProceso::ultimaFecha(self::PROCESO);
 
-        if (! is_string($ultimaFecha)) {
+        if (! $ultimaFecha) {
             return $today->copy();
         }
 
@@ -113,8 +113,8 @@ class ProcesarVacacionesAnuales extends Command
         $limite = $today->copy()->subDays(self::MAX_DIAS_RECUPERACION);
 
         if ($desde->lessThan($limite)) {
-            $this->warn("La última ejecución fue el {$ultimaFecha}; solo se recuperan los últimos ".self::MAX_DIAS_RECUPERACION.' días.');
-            Log::warning('Recuperación de vacaciones anuales truncada.', ['ultima_fecha' => $ultimaFecha]);
+            $this->warn("La última ejecución fue el {$ultimaFecha->format('d/m/Y')}; solo se recuperan los últimos ".self::MAX_DIAS_RECUPERACION.' días.');
+            Log::warning('Recuperación de vacaciones anuales truncada.', ['ultima_fecha' => $ultimaFecha->toDateString()]);
 
             return $limite;
         }

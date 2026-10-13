@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Forms;
 
+use App\Exceptions\SaldoInsuficienteException;
 use App\Models\SolicitudCompensacion;
 use App\Services\CompensacionService;
 use App\Support\VacacionesTiempo;
@@ -108,10 +109,16 @@ class SolicitudCompensacionForm extends Form
             'motivo' => $this->motivo,
         ];
 
-        if ($this->solicitud) {
-            $service->actualizarSolicitud($this->solicitud, $payload);
-        } else {
-            $service->registrarSolicitud($payload);
+        try {
+            if ($this->solicitud) {
+                $service->actualizarSolicitud($this->solicitud, $payload);
+            } else {
+                $service->registrarSolicitud($payload);
+            }
+        } catch (SaldoInsuficienteException $e) {
+            $this->addError('horas_solicitadas', $e->getMessage());
+
+            return;
         }
 
         $this->reset();

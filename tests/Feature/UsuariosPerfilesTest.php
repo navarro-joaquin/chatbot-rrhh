@@ -6,6 +6,7 @@ use App\Models\Gestion;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Activitylog\Models\Activity;
 
 uses(RefreshDatabase::class);
 
@@ -84,4 +85,22 @@ it('oculta a recursos humanos la actividad sobre usuarios', function () {
     Livewire::test(ActividadTable::class)
         ->assertDontSee('User (#')
         ->assertSee('Gestion (#');
+});
+
+it('no registra datos sensibles del usuario en la auditoria', function () {
+    $user = User::factory()->create();
+
+    $user->update(['name' => 'Otro Nombre', 'password' => 'nueva-clave-123']);
+    $user->forceFill(['remember_token' => 'abc', 'two_factor_secret' => 'secreto'])->save();
+
+    $registrado = Activity::query()
+        ->where('subject_type', $user->getMorphClass())
+        ->get()
+        ->map(fn (Activity $actividad) => $actividad->getRawOriginal('attribute_changes'))
+        ->implode(' ');
+
+    expect($registrado)->toContain('Otro Nombre')
+        ->not->toContain('password')
+        ->not->toContain('remember_token')
+        ->not->toContain('two_factor_secret');
 });

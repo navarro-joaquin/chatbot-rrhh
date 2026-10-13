@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\SaldoInsuficienteException;
 use App\Models\Antiguedad;
 use App\Models\ConsolidacionVacacion;
 use App\Models\Empleado;
@@ -25,7 +26,7 @@ class VacacionService
     public function registrarSolicitud(array $data): SolicitudVacacion
     {
         return DB::transaction(function () use ($data) {
-            $empleado = Empleado::findOrFail($data['empleado_id']);
+            $empleado = Empleado::query()->lockForUpdate()->findOrFail($data['empleado_id']);
             $diasARestar = (float) $data['dias_solicitados'];
 
             $solicitud = SolicitudVacacion::create([
@@ -49,11 +50,11 @@ class VacacionService
     public function actualizarSolicitud(SolicitudVacacion $solicitud, array $data): SolicitudVacacion
     {
         return DB::transaction(function () use ($solicitud, $data) {
+            $empleado = Empleado::query()->lockForUpdate()->findOrFail($data['empleado_id']);
+
             $solicitud->loadMissing('detalles.vacacion');
 
             $this->restaurarDiasDeSolicitud($solicitud);
-
-            $empleado = Empleado::findOrFail($data['empleado_id']);
             $diasARestar = (float) $data['dias_solicitados'];
 
             $solicitud->update([
@@ -188,12 +189,15 @@ class VacacionService
             return 0.0;
         }
 
+        // El cierre de gestión desactiva sus feriados; para fechas de gestiones ya cerradas siguen contando.
+        $anioActual = (int) Carbon::today()->year;
+
         $feriados = Feriado::query()
-            ->where('estado', true)
             ->whereBetween('fecha', [$inicio->toDateString(), $fin->toDateString()])
             ->with('gestion')
             ->get()
-            ->filter(fn (Feriado $feriado) => $feriado->gestion !== null)
+            ->filter(fn (Feriado $feriado) => $feriado->gestion !== null
+                && ($feriado->estado || $feriado->gestion->anio < $anioActual))
             ->map(fn (Feriado $feriado) => $feriado->fecha->toDateString())
             ->flip();
 
@@ -216,6 +220,8 @@ class VacacionService
 
     /**
      * Descuenta días de vacación empezando por la gestión más antigua.
+     *
+     * @throws SaldoInsuficienteException
      */
     private function descontarDias(int $empleadoId, float $cantidad, ?SolicitudVacacion $solicitud = null): void
     {
@@ -224,6 +230,7 @@ class VacacionService
             ->join('gestiones', 'vacaciones.gestion_id', '=', 'gestiones.id')
             ->orderBy('gestiones.anio', 'asc')
             ->select('vacaciones.*')
+            ->lockForUpdate()
             ->get();
 
         $restante = $cantidad;
@@ -257,8 +264,8 @@ class VacacionService
             }
         }
 
-        if ($restante > 0) {
-            \Log::warning("El empleado #{$empleadoId} solicitó más días de los disponibles. Quedaron {$restante} días sin descontar.");
+        if (round($restante, 4) > 0) {
+            throw new SaldoInsuficienteException('El saldo de vacaciones del empleado ya no alcanza para esta solicitud.');
         }
     }
 
@@ -583,12 +590,19 @@ class VacacionService
             ->where('gestion_id', $gestion->id)
             ->sum('dias_anadidos');
 
-        if (($vacacion->exists && $diasActuales >= $candidato['dias']) || $diasConsolidados >= $candidato['dias']) {
+        // Lo otorgado en la gestión no depende de lo ya consumido: cubre también saldos cargados a mano.
+        $diasConsumidos = $vacacion->exists
+            ? (float) SolicitudVacacionDetalle::query()->where('vacacion_id', $vacacion->id)->sum('dias_descontados')
+            : 0.0;
+        $diasOtorgados = max($diasActuales + $diasConsumidos, $diasConsolidados);
+
+        if ($diasOtorgados >= $candidato['dias']) {
             $this->debug($debugger, 'Vacacion omitida porque ya existe una igual o mejor', [
                 'empleado_id' => $empleado->id,
                 'gestion' => $gestion->anio,
                 'dias_actuales' => $diasActuales,
                 'dias_consolidados' => $diasConsolidados,
+                'dias_otorgados' => $diasOtorgados,
                 'dias_candidato' => $candidato['dias'],
             ]);
 

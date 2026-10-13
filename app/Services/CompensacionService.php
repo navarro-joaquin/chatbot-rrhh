@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\SaldoInsuficienteException;
 use App\Models\Compensacion;
 use App\Models\Empleado;
 use App\Models\SolicitudCompensacion;
@@ -16,7 +17,7 @@ class CompensacionService
     public function registrarSolicitud(array $data): SolicitudCompensacion
     {
         return DB::transaction(function () use ($data) {
-            $empleado = Empleado::findOrFail($data['empleado_id']);
+            $empleado = Empleado::query()->lockForUpdate()->findOrFail($data['empleado_id']);
             $horasARestar = (float) $data['horas_solicitadas'];
 
             $solicitud = SolicitudCompensacion::create([
@@ -39,11 +40,11 @@ class CompensacionService
     public function actualizarSolicitud(SolicitudCompensacion $solicitud, array $data): SolicitudCompensacion
     {
         return DB::transaction(function () use ($solicitud, $data) {
+            $empleado = Empleado::query()->lockForUpdate()->findOrFail($data['empleado_id']);
+
             $solicitud->loadMissing('detalles.compensacion');
 
             $this->restaurarHorasDeSolicitud($solicitud);
-
-            $empleado = Empleado::findOrFail($data['empleado_id']);
             $horasARestar = (float) $data['horas_solicitadas'];
 
             $solicitud->update([
@@ -72,6 +73,8 @@ class CompensacionService
 
     /**
      * Descuenta horas de compensacion empezando por la gestion y registro mas antiguos.
+     *
+     * @throws SaldoInsuficienteException
      */
     private function descontarHoras(int $empleadoId, float $cantidad, ?SolicitudCompensacion $solicitud = null): void
     {
@@ -85,6 +88,7 @@ class CompensacionService
             ->orderBy('compensaciones.fecha_registro', 'asc')
             ->orderBy('compensaciones.id', 'asc')
             ->select('compensaciones.*')
+            ->lockForUpdate()
             ->get();
 
         $restante = $cantidad;
@@ -123,8 +127,8 @@ class CompensacionService
             }
         }
 
-        if ($restante > 0) {
-            \Log::warning("El empleado #{$empleadoId} solicito mas horas de compensacion de las disponibles. Quedaron {$restante} horas sin descontar.");
+        if (round($restante, 4) > 0) {
+            throw new SaldoInsuficienteException('El saldo de compensaciones del empleado ya no alcanza para esta solicitud.');
         }
     }
 

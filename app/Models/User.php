@@ -81,6 +81,7 @@ class User extends Authenticatable
     {
         return LogOptions::defaults()
             ->logAll()
+            ->logExcept(['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes'])
             ->logOnlyDirty()
             ->dontLogIfAttributesChangedOnly(['created_at', 'updated_at']);
     }
