@@ -42,6 +42,7 @@ final class SolicitudCompensacionTable extends PowerGridComponent
     {
         return SolicitudCompensacion::query()
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
+            ->whereHas('empleado')
             ->with(['empleado']);
     }
 

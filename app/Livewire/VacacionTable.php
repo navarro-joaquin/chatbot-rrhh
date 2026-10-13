@@ -43,6 +43,7 @@ final class VacacionTable extends PowerGridComponent
     {
         return Vacacion::query()
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
+            ->whereHas('empleado')
             ->with(['empleado', 'gestion']);
     }
 

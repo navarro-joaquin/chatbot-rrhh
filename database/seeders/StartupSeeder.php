@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Rol;
 use App\Models\Antiguedad;
 use App\Models\Gestion;
 use App\Models\User;
@@ -65,6 +66,7 @@ class StartupSeeder extends Seeder
         User::create([
             'name' => 'Administrador',
             'email' => 'admin@admin.com',
+            'rol' => Rol::Administrador,
             'password' => Hash::make('Passw0rd'),
         ]);
     }

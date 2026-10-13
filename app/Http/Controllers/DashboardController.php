@@ -26,19 +26,19 @@ class DashboardController extends Controller
 
         $empleadosActivos = Empleado::query()->where('estado', true)->count();
         $totalEmpleados = Empleado::query()->count();
-        $contratosVigentes = EmpleadoContrato::query()->where('es_vigente', true)->count();
+        $contratosVigentes = EmpleadoContrato::query()->whereHas('empleado')->where('es_vigente', true)->count();
         $empleadosSinContratoVigente = Empleado::query()
             ->where('estado', true)
             ->whereDoesntHave('contratoVigente')
             ->count();
 
-        $contratosPorVencer = EmpleadoContrato::query()
+        $contratosPorVencer = EmpleadoContrato::query()->whereHas('empleado')
             ->where('es_vigente', true)
             ->whereNotNull('fecha_fin')
             ->whereBetween('fecha_fin', [$today, $today->copy()->addDays(30)])
             ->count();
 
-        $vacacionesQuery = Vacacion::query();
+        $vacacionesQuery = Vacacion::query()->whereHas('empleado');
 
         if ($currentGestion !== null) {
             $vacacionesQuery->where('gestion_id', $currentGestion->id);
@@ -47,37 +47,37 @@ class DashboardController extends Controller
         $diasVacacionesDisponibles = (float) $vacacionesQuery->sum('dias_disponibles');
         $promedioVacaciones = (float) $vacacionesQuery->avg('dias_disponibles');
 
-        $solicitudesMes = SolicitudVacacion::query()
+        $solicitudesMes = SolicitudVacacion::query()->whereHas('empleado')
             ->whereBetween('fecha_inicio', [$today->copy()->startOfMonth(), $today->copy()->endOfMonth()])
             ->count();
 
-        $horasCompensacionDisponibles = (float) Compensacion::query()
+        $horasCompensacionDisponibles = (float) Compensacion::query()->whereHas('empleado')
             ->where('estado', 'disponible')
             ->sum('cantidad_horas');
 
-        $solicitudesCompensacionMes = SolicitudCompensacion::query()
+        $solicitudesCompensacionMes = SolicitudCompensacion::query()->whereHas('empleado')
             ->whereBetween('fecha_compensacion', [$today->copy()->startOfMonth(), $today->copy()->endOfMonth()])
             ->count();
 
-        $resumenContratos = EmpleadoContrato::query()
+        $resumenContratos = EmpleadoContrato::query()->whereHas('empleado')
             ->select('estado', DB::raw('COUNT(*) as total'))
             ->groupBy('estado')
             ->orderByDesc('total')
             ->get();
 
-        $resumenTiposContrato = EmpleadoContrato::query()
+        $resumenTiposContrato = EmpleadoContrato::query()->whereHas('empleado')
             ->select('tipo', DB::raw('COUNT(*) as total'))
             ->groupBy('tipo')
             ->orderByDesc('total')
             ->get();
 
-        $resumenSolicitudes = SolicitudVacacion::query()
+        $resumenSolicitudes = SolicitudVacacion::query()->whereHas('empleado')
             ->select('estado', DB::raw('COUNT(*) as total'))
             ->groupBy('estado')
             ->orderByDesc('total')
             ->get();
 
-        $contratosProximosAVencer = EmpleadoContrato::query()
+        $contratosProximosAVencer = EmpleadoContrato::query()->whereHas('empleado')
             ->with('empleado:id,nombre_completo')
             ->where('es_vigente', true)
             ->whereNotNull('fecha_fin')
@@ -93,7 +93,7 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $topSaldosVacaciones = Vacacion::query()
+        $topSaldosVacaciones = Vacacion::query()->whereHas('empleado')
             ->join('empleados', 'vacaciones.empleado_id', '=', 'empleados.id')
             ->select(
                 'vacaciones.empleado_id',

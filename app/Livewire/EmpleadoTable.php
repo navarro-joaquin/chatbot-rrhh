@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Empleado;
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\Locked;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\Filter;
@@ -14,6 +15,9 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 final class EmpleadoTable extends PowerGridComponent
 {
     public string $tableName = 'empleados-table';
+
+    #[Locked]
+    public bool $soloEliminados = false;
 
     public function boot(): void
     {
@@ -33,7 +37,17 @@ final class EmpleadoTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return Empleado::query();
+        return $this->mostrarEliminados()
+            ? Empleado::onlyTrashed()
+            : Empleado::query();
+    }
+
+    /**
+     * Solo el administrador puede listar los empleados eliminados.
+     */
+    private function mostrarEliminados(): bool
+    {
+        return $this->soloEliminados && (bool) auth()->user()?->can('restaurar-empleados');
     }
 
     public function fields(): PowerGridFields
@@ -43,7 +57,8 @@ final class EmpleadoTable extends PowerGridComponent
             ->add('nombre_completo')
             ->add('carnet_identidad')
             ->add('telefono')
-            ->add('estado_texto', fn (Empleado $model) => $model->estado ? 'Activo' : 'Inactivo');
+            ->add('estado_texto', fn (Empleado $model) => $model->estado ? 'Activo' : 'Inactivo')
+            ->add('deleted_at_formatted', fn (Empleado $model) => $model->deleted_at?->format('d/m/Y H:i'));
     }
 
     public function columns(): array
@@ -65,6 +80,10 @@ final class EmpleadoTable extends PowerGridComponent
 
             Column::make('Estado', 'estado_texto', 'estado'),
 
+            Column::make('Eliminado el', 'deleted_at_formatted', 'deleted_at')
+                ->sortable()
+                ->hidden(isHidden: ! $this->mostrarEliminados(), isForceHidden: ! $this->mostrarEliminados()),
+
             Column::action('Acciones'),
         ];
     }
@@ -79,6 +98,15 @@ final class EmpleadoTable extends PowerGridComponent
 
     public function actions(Empleado $row): array
     {
+        if ($row->trashed()) {
+            return [
+                Button::add('restore')
+                    ->slot('Restaurar')
+                    ->class('inline-flex items-center px-3 py-1 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700')
+                    ->dispatch('restore', ['id' => $row->id]),
+            ];
+        }
+
         return [
             Button::add('view')
                 ->slot('Ver Detalle')

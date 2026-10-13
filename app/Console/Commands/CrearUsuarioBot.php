@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Enums\Rol;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
@@ -33,6 +34,7 @@ class CrearUsuarioBot extends Command
         User::query()->create([
             'name' => (string) $this->option('name'),
             'email' => $email,
+            'rol' => Rol::RecursosHumanos,
             'password' => Str::random(64),
         ])->forceFill([
             'email_verified_at' => now(),

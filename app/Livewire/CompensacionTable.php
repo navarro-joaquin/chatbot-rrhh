@@ -43,6 +43,7 @@ final class CompensacionTable extends PowerGridComponent
     {
         return Compensacion::query()
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
+            ->whereHas('empleado')
             ->with(['empleado', 'gestion', 'contrato']);
     }
 

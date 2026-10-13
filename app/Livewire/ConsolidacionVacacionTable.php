@@ -35,6 +35,7 @@ final class ConsolidacionVacacionTable extends PowerGridComponent
     public function datasource(): Builder
     {
         return ConsolidacionVacacion::query()
+            ->whereHas('empleado')
             ->with(['empleado', 'gestion']);
     }
 

@@ -29,7 +29,9 @@ new class extends Component
 
     public function save(): void
     {
-        $this->form->save();
+        if (! $this->form->save()) {
+            return;
+        }
 
         $this->message = 'Usuario guardado correctamente.';
         $this->showModal = false;
@@ -102,6 +104,16 @@ new class extends Component
                 <flux:label>Email</flux:label>
                 <flux:input type="email" wire:model="form.email" placeholder="ejemplo@correo.com" />
                 <flux:error name="form.email" />
+            </flux:field>
+
+            <flux:field>
+                <flux:label>Perfil</flux:label>
+                <flux:select wire:model="form.rol">
+                    @foreach (\App\Enums\Rol::cases() as $rol)
+                        <flux:select.option value="{{ $rol->value }}">{{ $rol->label() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:error name="form.rol" />
             </flux:field>
 
             <flux:field>

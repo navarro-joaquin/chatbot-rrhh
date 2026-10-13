@@ -13,6 +13,7 @@ Laravel 12 HR app (Livewire 4 full-page + Flux UI Free + Tailwind v4 + PowerGrid
 ## Architecture
 
 - Web (`routes/web.php`): all pages are `Route::livewire(...)` full-page components; tables live in `app/Livewire/*Table.php` (PowerGrid), forms in `app/Livewire/Forms/`.
+- Perfiles: `users.rol` (`App\Enums\Rol`: `administrador` | `rrhh`). Gate `gestionar-usuarios` (solo administrador) protege `usuarios`; `rrhh` ve todo lo demás. Sin registro público: los usuarios se crean desde `usuarios`.
 - Domain: models `app/Models/` (Empleado, Vacacion, Compensacion, Solicitud*, Gestion, Feriado...); business rules in `app/Services/VacacionService.php`, `CompensacionService.php` + `app/Support/VacacionesTiempo.php` (8h-day days/hours/minutes + `texto` breakdown — reuse, don't reimplement).
 - Read-only bot API (`routes/api.php`, `docs/bot-api.md`): `/api/v1/bot/*`, Sanctum `bot:read` ability + `bot.client` middleware (`X-Bot-Client-Secret` = `RRHH_BOT_CLIENT_SECRET`). Token endpoint throttled `6,1`, 24h expiry.
 - Laravel 12 structure: middleware aliases in `bootstrap/app.php`, schedule in `routes/console.php` (vacaciones-anuales + fin-contrato daily `00:00`, fin-gestion yearly 12-31). Cron commands: `app:procesar-vacaciones-anuales`, `app:procesar-fin-contrato`, `app:procesar-fin-gestion`; bot setup: `app:crear-usuario-bot`, `app:crear-token-bot` (diagnostic only).

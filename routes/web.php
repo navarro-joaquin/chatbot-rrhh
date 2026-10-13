@@ -11,7 +11,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('antiguedades', 'antiguedades')->name('antiguedades.index');
     Route::livewire('empleados', 'empleados')->name('empleados.index');
     Route::livewire('empleados/{id}', 'empleado-detalle')->name('empleados.show');
-    Route::livewire('usuarios', 'users')->name('users.index');
+    Route::livewire('usuarios', 'users')->name('users.index')->middleware('can:gestionar-usuarios');
     Route::livewire('vacaciones', 'vacaciones')->name('vacaciones.index');
     Route::livewire('solicitudes-vacaciones', 'solicitudes-vacaciones')->name('solicitudes-vacaciones.index');
     Route::livewire('compensaciones', 'compensaciones')->name('compensaciones.index');

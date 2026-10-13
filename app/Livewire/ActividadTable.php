@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\Facades\Filter;
@@ -32,7 +33,12 @@ final class ActividadTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
+        $tipoUsuario = (new User)->getMorphClass();
+
         return Activity::with('causer')
+            ->when(! auth()->user()?->esAdministrador(), fn (Builder $query) => $query->where(
+                fn (Builder $query) => $query->whereNull('subject_type')->orWhere('subject_type', '!=', $tipoUsuario)
+            ))
             ->latest();
     }
 

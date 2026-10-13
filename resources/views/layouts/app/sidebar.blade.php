@@ -29,9 +29,11 @@
                     <flux:sidebar.item icon="globe-americas" :href="route('feriados.index')" :current="request()->routeIs('feriados.index')" wire:navigate>
                         {{ __('Feriados') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="shield-check" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>
-                        {{ __('Usuarios') }}
-                    </flux:sidebar.item>
+                    @can('gestionar-usuarios')
+                        <flux:sidebar.item icon="shield-check" :href="route('users.index')" :current="request()->routeIs('users.index')" wire:navigate>
+                            {{ __('Usuarios') }}
+                        </flux:sidebar.item>
+                    @endcan
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

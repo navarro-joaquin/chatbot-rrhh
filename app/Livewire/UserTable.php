@@ -36,14 +36,15 @@ final class UserTable extends PowerGridComponent
 //            ->add('id')
             ->add('name')
             ->add('email')
+            ->add('rol_label', fn (User $model) => $model->rol?->label())
             ->add('created_at_formatted', fn (User $model) => $model->created_at->format('d/m/Y H:i'));
     }
 
     public function columns(): array
     {
         return [
-//            Column::make('ID', 'id')
-//                ->sortable(),
+            //            Column::make('ID', 'id')
+            //                ->sortable(),
 
             Column::make('Nombre', 'name')
                 ->searchable()
@@ -53,10 +54,13 @@ final class UserTable extends PowerGridComponent
                 ->searchable()
                 ->sortable(),
 
+            Column::make('Perfil', 'rol_label', 'rol')
+                ->sortable(),
+
             Column::make('Fecha Creación', 'created_at_formatted', 'created_at')
                 ->sortable(),
 
-            Column::action('Acciones')
+            Column::action('Acciones'),
         ];
     }
 

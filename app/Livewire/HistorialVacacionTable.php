@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Empleado;
 use Carbon\Carbon;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -48,6 +49,7 @@ final class HistorialVacacionTable extends PowerGridComponent
     {
         return DB::table('v_historial_vacaciones')
             ->select('*', 'registro_id as id')
+            ->whereIn('empleado_id', Empleado::query()->select('id'))
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId));
     }
 
