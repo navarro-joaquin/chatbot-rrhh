@@ -14,7 +14,7 @@ class GestionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'anio' => ['required', 'integer', 'unique:gestiones,anio,' . ($this->gestion?->id ?? 'NULL')],
+            'anio' => ['required', 'integer', 'unique:gestiones,anio,'.($this->gestion?->id ?? 'NULL')],
         ];
     }
 

@@ -54,8 +54,6 @@ final class ActividadTable extends PowerGridComponent
                 $raw = $model->getRawOriginal('attribute_changes');
                 $properties = json_decode($raw, true) ?? [];
 
-                \Log::info('Properties decoded', $properties); // temporal para verificar
-
                 if ($model->event === 'updated') {
                     $attributes = $properties['attributes'] ?? [];
                     $old = $properties['old'] ?? [];

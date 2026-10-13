@@ -193,7 +193,8 @@ class VacacionService
         $anioActual = (int) Carbon::today()->year;
 
         $feriados = Feriado::query()
-            ->whereBetween('fecha', [$inicio->toDateString(), $fin->toDateString()])
+            ->whereDate('fecha', '>=', $inicio->toDateString())
+            ->whereDate('fecha', '<=', $fin->toDateString())
             ->with('gestion')
             ->get()
             ->filter(fn (Feriado $feriado) => $feriado->gestion !== null

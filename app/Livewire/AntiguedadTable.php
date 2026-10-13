@@ -16,7 +16,7 @@ final class AntiguedadTable extends PowerGridComponent
 
     public function setUp(): array
     {
-//        $this->showCheckBox();
+        //        $this->showCheckBox();
 
         return [
             PowerGrid::header()
@@ -44,8 +44,8 @@ final class AntiguedadTable extends PowerGridComponent
     public function columns(): array
     {
         return [
-//            Column::make('ID', 'id')
-//                ->sortable(),
+            //            Column::make('ID', 'id')
+            //                ->sortable(),
 
             Column::make('Desde (años)', 'anios_desde')
                 ->searchable()

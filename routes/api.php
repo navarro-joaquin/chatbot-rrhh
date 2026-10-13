@@ -2,12 +2,7 @@
 
 use App\Http\Controllers\Api\Bot\BotTokenController;
 use App\Http\Controllers\Api\Bot\EmpleadoController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
 
 Route::post('v1/bot/auth/token', [BotTokenController::class, 'store'])
     ->middleware(['bot.client', 'throttle:6,1']);

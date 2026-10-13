@@ -3,6 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Models\EmpleadoContrato;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
@@ -98,24 +99,26 @@ class EmpleadoContratoForm extends Form
 
         $data = $this->except('contrato');
 
-        if ($this->es_vigente) {
-            $data['estado'] = 'Vigente';
+        DB::transaction(function () use ($data): void {
+            if ($this->es_vigente) {
+                $data['estado'] = 'Vigente';
 
-            EmpleadoContrato::query()
-                ->where('empleado_id', $this->empleado_id)
-                ->when($this->contrato, fn ($query) => $query->whereKeyNot($this->contrato->id))
-                ->update(['es_vigente' => false]);
-        }
+                EmpleadoContrato::query()
+                    ->where('empleado_id', $this->empleado_id)
+                    ->when($this->contrato, fn ($query) => $query->whereKeyNot($this->contrato->id))
+                    ->update(['es_vigente' => false]);
+            }
 
-        if (! $this->es_vigente && $this->estado === 'Vigente') {
-            $data['estado'] = 'Finalizado';
-        }
+            if (! $this->es_vigente && $this->estado === 'Vigente') {
+                $data['estado'] = 'Finalizado';
+            }
 
-        if ($this->contrato) {
-            $this->contrato->update($data);
-        } else {
-            EmpleadoContrato::create($data);
-        }
+            if ($this->contrato) {
+                $this->contrato->update($data);
+            } else {
+                EmpleadoContrato::create($data);
+            }
+        });
 
         $this->reset();
         $this->tipo = 'Indefinido';
