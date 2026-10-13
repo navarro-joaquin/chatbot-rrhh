@@ -15,7 +15,9 @@ new class extends Component
     public function with()
     {
         return [
-            'empleados' => Empleado::orderBy('nombre_completo')->get()
+            'empleados' => Empleado::whereHas('contratoVigente', fn ($query) => $query->where('tipo', 'Indefinido'))
+                ->orderBy('nombre_completo')
+                ->get()
         ];
     }
 };
