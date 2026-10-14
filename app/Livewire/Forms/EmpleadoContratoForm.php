@@ -44,12 +44,7 @@ class EmpleadoContratoForm extends Form
         return [
             'empleado_id' => ['required', 'exists:empleados,id'],
             'tipo' => ['required', Rule::in(['Indefinido', 'Plazo Fijo'])],
-            'numero_contrato' => [
-                'nullable',
-                'string',
-                'max:255',
-                Rule::requiredIf(fn () => $this->tipo === 'Plazo Fijo'),
-            ],
+            'numero_contrato' => ['nullable', 'string', 'max:255'],
             'nro_item' => ['nullable', 'string', 'max:255'],
             'fecha_inicio' => ['required', 'date'],
             'fecha_fin' => ['nullable', 'date', 'after_or_equal:fecha_inicio'],

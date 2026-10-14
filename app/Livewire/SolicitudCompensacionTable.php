@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Empleado;
 use App\Models\SolicitudCompensacion;
+use App\Support\EstiloBoton;
 use App\Support\VacacionesTiempo;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
@@ -126,7 +127,7 @@ final class SolicitudCompensacionTable extends PowerGridComponent
         return [
             Button::add('edit')
                 ->slot('Editar')
-                ->class('inline-flex items-center px-3 py-1 bg-zinc-800 text-white rounded-md text-xs font-medium hover:bg-zinc-700 dark:bg-zinc-200 dark:text-zinc-900')
+                ->class(EstiloBoton::EDITAR)
                 ->dispatch('edit', ['id' => $row->id]),
         ];
     }

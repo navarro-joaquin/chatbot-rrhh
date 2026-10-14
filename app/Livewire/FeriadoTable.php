@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Feriado;
 use App\Models\Gestion;
+use App\Support\EstiloBoton;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
@@ -99,12 +100,12 @@ final class FeriadoTable extends PowerGridComponent
         return [
             Button::add('edit')
                 ->slot('Editar')
-                ->class('inline-flex items-center px-3 py-1 bg-zinc-800 text-white rounded-md text-xs font-medium hover:bg-zinc-700 dark:bg-zinc-200 dark:text-zinc-900')
+                ->class(EstiloBoton::EDITAR)
                 ->dispatch('edit', ['id' => $row->id]),
 
             Button::add('delete')
                 ->slot('Eliminar')
-                ->class('inline-flex items-center px-3 py-1 bg-red-600 text-white rounded-md text-xs font-medium hover:bg-red-700')
+                ->class(EstiloBoton::ELIMINAR)
                 ->dispatch('confirmDelete', ['id' => $row->id]),
         ];
     }

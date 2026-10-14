@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\Empleado;
+use App\Support\EstiloBoton;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Locked;
 use PowerComponents\LivewirePowerGrid\Button;
@@ -102,7 +103,7 @@ final class EmpleadoTable extends PowerGridComponent
             return [
                 Button::add('restore')
                     ->slot('Restaurar')
-                    ->class('inline-flex items-center px-3 py-1 bg-green-600 text-white rounded-md text-xs font-medium hover:bg-green-700')
+                    ->class(EstiloBoton::RESTAURAR)
                     ->dispatch('restore', ['id' => $row->id]),
             ];
         }
@@ -110,17 +111,17 @@ final class EmpleadoTable extends PowerGridComponent
         return [
             Button::add('view')
                 ->slot('Ver Detalle')
-                ->class('inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-200')
+                ->class(EstiloBoton::DETALLE)
                 ->route('empleados.show', ['id' => $row->id]),
 
             Button::add('edit')
                 ->slot('Editar')
-                ->class('inline-flex items-center px-3 py-1 bg-zinc-800 text-white rounded-md text-xs font-medium hover:bg-zinc-700 dark:bg-zinc-200 dark:text-zinc-900')
+                ->class(EstiloBoton::EDITAR)
                 ->dispatch('edit', ['id' => $row->id]),
 
             Button::add('delete')
                 ->slot('Eliminar')
-                ->class('inline-flex items-center px-3 py-1 bg-red-600 text-white rounded-md text-xs font-medium hover:bg-red-700')
+                ->class(EstiloBoton::ELIMINAR)
                 ->dispatch('confirmDelete', ['id' => $row->id]),
         ];
     }

@@ -195,14 +195,18 @@ it('al registrar un nuevo contrato vigente deja de estar vigente el anterior', f
         ->and($this->contrato->fresh()->es_vigente)->toBeFalse();
 });
 
-it('exige numero de contrato en los contratos a plazo fijo sin alterar el vigente', function () {
+it('permite registrar un contrato a plazo fijo sin numero de contrato', function () {
     Livewire::test('empleado-detalle', ['id' => $this->empleado->id])
         ->call('createContrato')
         ->set('contratoForm.tipo', 'Plazo Fijo')
         ->set('contratoForm.fecha_inicio', '2026-01-01')
+        ->set('contratoForm.fecha_fin', '2026-12-31')
         ->call('saveContrato')
-        ->assertHasErrors('contratoForm.numero_contrato');
+        ->assertHasNoErrors();
 
-    expect($this->contrato->fresh()->es_vigente)->toBeTrue()
-        ->and(EmpleadoContrato::count())->toBe(1);
+    $nuevo = EmpleadoContrato::where('empleado_id', $this->empleado->id)->where('es_vigente', true)->first();
+
+    expect($nuevo->tipo)->toBe('Plazo Fijo')
+        ->and($nuevo->numero_contrato)->toBeNull()
+        ->and($this->contrato->fresh()->es_vigente)->toBeFalse();
 });
