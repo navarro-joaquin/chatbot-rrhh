@@ -40,4 +40,9 @@ return [
         'user_email' => env('RRHH_BOT_USER_EMAIL'),
     ],
 
+    'rrhh_integracion' => [
+        'client_secret' => env('RRHH_INTEGRACION_CLIENT_SECRET'),
+        'user_email' => env('RRHH_INTEGRACION_USER_EMAIL'),
+    ],
+
 ];

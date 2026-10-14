@@ -85,10 +85,10 @@ test('authenticated users can see dashboard statistics', function () {
 
     $response->assertOk();
     $response->assertSee('Dashboard operativo');
-    $response->assertSee('Empleados activos');
+    $response->assertSee('empleados activos');
     $response->assertSee('2');
-    $response->assertSee('12.5');
-    $response->assertSee('8.0');
+    $response->assertSee('12 días y 4 horas');
+    $response->assertSee('8 horas');
     $response->assertSee('Ana Perez');
     $response->assertSee('Dia del Trabajo');
 

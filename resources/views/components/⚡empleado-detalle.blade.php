@@ -295,14 +295,14 @@ new class extends Component
         </section>
     </div>
 
-    <flux:modal wire:model="showContratoModal" class="md:w-96">
+    <flux:modal wire:model="showContratoModal" class="w-full max-w-2xl max-h-[90dvh] overflow-y-auto">
         <form wire:submit="saveContrato" class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ $contratoForm->contrato ? 'Editar' : 'Nuevo' }} Contrato</flux:heading>
                 <flux:subheading>Registre el historial contractual del empleado.</flux:subheading>
             </div>
 
-            <div class="grid grid-cols-1 gap-4">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <flux:field>
                     <flux:label>Tipo</flux:label>
                     <flux:select wire:model.live="contratoForm.tipo">
@@ -346,13 +346,13 @@ new class extends Component
                     <flux:error name="contratoForm.fecha_fin" />
                 </flux:field>
 
-                <flux:field class="md:col-span-2">
+                <flux:field class="sm:col-span-2">
                     <flux:label>Resolucion</flux:label>
                     <flux:input type="text" wire:model="contratoForm.resolucion" placeholder="Ej: RA-123/2026" />
                     <flux:error name="contratoForm.resolucion" />
                 </flux:field>
 
-                <div class="flex items-center gap-2 pt-8">
+                <div class="flex items-center gap-2 sm:col-span-2">
                     <flux:switch wire:model="contratoForm.es_vigente" />
                     <flux:label>Contrato vigente</flux:label>
                 </div>
@@ -380,15 +380,15 @@ new class extends Component
         </div>
     </flux:modal>
 
-    <flux:modal wire:model="showAntiguedadModal" class="md:w-96">
+    <flux:modal wire:model="showAntiguedadModal" class="w-full max-w-2xl max-h-[90dvh] overflow-y-auto">
         <form wire:submit="saveAntiguedad" class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ $antiguedadForm->antiguedad ? 'Editar' : 'Nueva' }} Antiguedad</flux:heading>
                 <flux:subheading>Registre la antiguedad reconocida del empleado.</flux:subheading>
             </div>
 
-            <div class="grid grid-cols-1 gap-4">
-                <flux:field>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <flux:field class="sm:col-span-2">
                     <flux:label>Contrato</flux:label>
                     <flux:select wire:model="antiguedadForm.contrato_id">
                         <flux:select.option value="">Sin contrato asociado</flux:select.option>
@@ -423,13 +423,13 @@ new class extends Component
                     <flux:error name="antiguedadForm.origen" />
                 </flux:field>
 
-                <flux:field class="md:col-span-2">
+                <flux:field class="sm:col-span-2">
                     <flux:label>Observaciones</flux:label>
                     <flux:textarea wire:model="antiguedadForm.observaciones" rows="2" />
                     <flux:error name="antiguedadForm.observaciones" />
                 </flux:field>
 
-                <div class="flex items-center gap-2 pt-8">
+                <div class="flex items-center gap-2 sm:col-span-2">
                     <flux:switch wire:model="antiguedadForm.vigente" />
                     <flux:label>Antiguedad vigente</flux:label>
                 </div>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AuthenticateBotClient;
+use App\Http\Middleware\AuthenticateIntegracionClient;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
             'bot.client' => AuthenticateBotClient::class,
+            'integracion.client' => AuthenticateIntegracionClient::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

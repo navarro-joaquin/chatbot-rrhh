@@ -105,7 +105,33 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $porMes = fn (string $modelo, string $columna): array => $modelo::query()->whereHas('empleado')
+            ->whereDate($columna, '>=', $today->copy()->startOfYear())
+            ->whereDate($columna, '<=', $today->copy()->endOfYear())
+            ->pluck($columna)
+            ->countBy(fn ($fecha): int => Carbon::parse($fecha)->month)
+            ->all();
+
+        $vacacionesPorMes = $porMes(SolicitudVacacion::class, 'fecha_inicio');
+        $compensacionesPorMes = $porMes(SolicitudCompensacion::class, 'fecha_compensacion');
+
+        $meses = collect(range(1, 12))->map(fn (int $mes): string => ucfirst(Carbon::create(null, $mes, 1)->translatedFormat('M')))->all();
+
+        $serieSolicitudesMensuales = [
+            ['nombre' => 'Vacaciones', 'color' => 'bg-emerald-500', 'valores' => array_map(fn (int $mes): int => $vacacionesPorMes[$mes] ?? 0, range(1, 12))],
+            ['nombre' => 'Compensaciones', 'color' => 'bg-sky-500', 'valores' => array_map(fn (int $mes): int => $compensacionesPorMes[$mes] ?? 0, range(1, 12))],
+        ];
+
+        $donutTiposContrato = $resumenTiposContrato->map(fn ($item): array => ['label' => $item->tipo, 'value' => (int) $item->total])->all();
+        $donutEstadoContratos = $resumenContratos->map(fn ($item): array => ['label' => ucfirst(strtolower($item->estado)), 'value' => (int) $item->total])->all();
+        $donutSolicitudes = $resumenSolicitudes->map(fn ($item): array => ['label' => ucfirst($item->estado), 'value' => (int) $item->total])->all();
+
         return view('dashboard', [
+            'meses' => $meses,
+            'serieSolicitudesMensuales' => $serieSolicitudesMensuales,
+            'donutTiposContrato' => $donutTiposContrato,
+            'donutEstadoContratos' => $donutEstadoContratos,
+            'donutSolicitudes' => $donutSolicitudes,
             'currentGestion' => $currentGestion,
             'empleadosActivos' => $empleadosActivos,
             'totalEmpleados' => $totalEmpleados,
