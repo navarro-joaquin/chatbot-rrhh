@@ -40,6 +40,8 @@ it('permite a recursos humanos ver el resto de la informacion', function (string
     'consolidacion-vacacion.index',
     'reportes.historial-vacaciones',
     'reportes.contratos-por-vencer',
+    'reportes.saldos-vacaciones',
+    'reportes.consolidaciones',
     'actividades.index',
 ]);
 

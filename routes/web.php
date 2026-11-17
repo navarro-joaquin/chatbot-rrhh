@@ -25,6 +25,8 @@ Route::middleware(['auth', 'verified', 'password.cambio'])->group(function () {
     Route::livewire('consolidacion-vacacion', 'consolidacion-vacacion')->name('consolidacion-vacacion.index');
     Route::livewire('reporte-historial-vacaciones', 'reporte-historial-vacaciones')->name('reportes.historial-vacaciones');
     Route::livewire('reporte-contratos-por-vencer', 'reporte-contratos-por-vencer')->name('reportes.contratos-por-vencer');
+    Route::livewire('reporte-saldos-vacaciones', 'reporte-saldos-vacaciones')->name('reportes.saldos-vacaciones');
+    Route::livewire('reporte-consolidaciones', 'reporte-consolidaciones')->name('reportes.consolidaciones');
 });
 
 require __DIR__.'/settings.php';

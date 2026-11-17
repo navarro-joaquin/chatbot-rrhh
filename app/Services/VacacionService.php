@@ -553,6 +553,51 @@ class VacacionService
             ?? $fechaPorDefecto->copy()->startOfDay();
     }
 
+    /**
+     * Consolidaciones que corresponden en el año según la fecha de inicio del contrato vigente:
+     * el aniversario del contrato en ese año, los años de servicio cumplidos y los días del tramo
+     * de antigüedad. Considera a los mismos empleados que el proceso automático (activos con
+     * contrato indefinido vigente) y no toma en cuenta antigüedades reconocidas.
+     *
+     * @return Collection<int, array{id:int, empleado_id:int, empleado:string, carnet_identidad:?string, fecha_inicio:string, aniversario:string, mes:int, anios:int, dias:float}>
+     */
+    public function consolidacionesPorContrato(int $anio): Collection
+    {
+        $tramos = Antiguedad::query()->get();
+
+        return Empleado::query()
+            ->with('contratoVigente')
+            ->where('estado', true)
+            ->whereHas('contratoVigente', fn ($query) => $query->where('tipo', 'Indefinido')->whereNotNull('fecha_inicio'))
+            ->get()
+            ->map(function (Empleado $empleado) use ($anio, $tramos): ?array {
+                $inicio = $empleado->contratoVigente->fecha_inicio;
+                $aniversario = $this->ajustarAniversarioAAnio($inicio, $anio);
+                $anios = (int) $inicio->diffInYears($aniversario);
+
+                $tramo = $tramos->first(fn (Antiguedad $tramo) => $tramo->anios_desde <= $anios && $tramo->anios_hasta >= $anios);
+
+                if ($anios <= 0 || ! $tramo) {
+                    return null;
+                }
+
+                return [
+                    'id' => $empleado->id,
+                    'empleado_id' => $empleado->id,
+                    'empleado' => $empleado->nombre_completo,
+                    'carnet_identidad' => $empleado->carnet_identidad,
+                    'fecha_inicio' => $inicio->toDateString(),
+                    'aniversario' => $aniversario->toDateString(),
+                    'mes' => $aniversario->month,
+                    'anios' => $anios,
+                    'dias' => (float) $tramo->dias_asignados,
+                ];
+            })
+            ->filter()
+            ->sortBy([['aniversario', 'asc'], ['empleado', 'asc']])
+            ->values();
+    }
+
     private function obtenerPrimerAniversarioDisponible(CarbonInterface $inicioServicio, CarbonInterface $fechaReferencia): Carbon
     {
         $aniversario = $this->ajustarAniversarioAAnio($inicioServicio, (int) $fechaReferencia->year);

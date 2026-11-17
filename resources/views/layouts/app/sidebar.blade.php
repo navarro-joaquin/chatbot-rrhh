@@ -72,6 +72,12 @@
                     <flux:sidebar.item icon="calendar-days" :href="route('reportes.contratos-por-vencer')" :current="request()->routeIs('reportes.contratos-por-vencer')" wire:navigate>
                         {{ __('Contratos por vencer') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="chart-bar" :href="route('reportes.saldos-vacaciones')" :current="request()->routeIs('reportes.saldos-vacaciones')" wire:navigate>
+                        {{ __('Saldos de vacaciones') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar" :href="route('reportes.consolidaciones')" :current="request()->routeIs('reportes.consolidaciones')" wire:navigate>
+                        {{ __('Consolidaciones por mes') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

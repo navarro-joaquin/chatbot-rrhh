@@ -110,7 +110,7 @@
                         <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Mayores saldos de vacaciones</h2>
                         <p class="text-sm text-zinc-600 dark:text-zinc-300">Top 5 con saldo acumulado disponible</p>
                     </div>
-                    <a href="{{ route('vacaciones.index') }}" class="{{ $enlace }}">Ver saldos</a>
+                    <a href="{{ route('reportes.saldos-vacaciones') }}" class="{{ $enlace }}">Ver saldos</a>
                 </div>
 
                 <div class="space-y-4">
