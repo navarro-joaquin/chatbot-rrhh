@@ -36,11 +36,6 @@ class EmpleadoContrato extends BaseModel
         return $this->belongsTo(Empleado::class);
     }
 
-    public function compensaciones(): HasMany
-    {
-        return $this->hasMany(Compensacion::class, 'contrato_id');
-    }
-
     public function antiguedades(): HasMany
     {
         return $this->hasMany(EmpleadoAntiguedad::class, 'contrato_id');

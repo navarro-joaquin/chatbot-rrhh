@@ -66,7 +66,6 @@ test('authenticated users can see dashboard statistics', function () {
     Compensacion::create([
         'empleado_id' => $empleadoActivo->id,
         'gestion_id' => $gestion->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 8,
         'fecha_registro' => '2026-04-20',
         'estado' => 'disponible',

@@ -76,7 +76,6 @@ it('devuelve los saldos disponibles del empleado', function () {
     Compensacion::create([
         'empleado_id' => $this->empleado->id,
         'gestion_id' => $gestion->id,
-        'contrato_id' => $this->contrato->id,
         'cantidad_horas' => 4.5,
         'descripcion' => 'Saldo disponible',
         'fecha_registro' => '2026-08-01',

@@ -125,7 +125,7 @@ it('rechaza una solicitud de vacaciones mayor al saldo disponible', function () 
         ->and((float) Vacacion::first()->dias_disponibles)->toBe(2.0);
 });
 
-it('registra una compensacion asociada al contrato vigente', function () {
+it('registra una compensacion del empleado', function () {
     Livewire::test('compensaciones')
         ->call('create')
         ->set('form.empleado_id', $this->empleado->id)
@@ -139,15 +139,13 @@ it('registra una compensacion asociada al contrato vigente', function () {
 
     $compensacion = Compensacion::firstWhere('empleado_id', $this->empleado->id);
 
-    expect((float) $compensacion->cantidad_horas)->toBe(6.5)
-        ->and($compensacion->contrato_id)->toBe($this->contrato->id);
+    expect((float) $compensacion->cantidad_horas)->toBe(6.5);
 });
 
 it('registra una solicitud de compensacion y rechaza la que supera el saldo', function () {
     Compensacion::create([
         'empleado_id' => $this->empleado->id,
         'gestion_id' => $this->gestion->id,
-        'contrato_id' => $this->contrato->id,
         'cantidad_horas' => 6,
         'fecha_registro' => '2026-03-10',
         'estado' => 'disponible',
@@ -205,7 +203,6 @@ it('muestra en el detalle del empleado la suma de los saldos de vacaciones y com
         Compensacion::create([
             'empleado_id' => $this->empleado->id,
             'gestion_id' => $this->gestion->id,
-            'contrato_id' => $this->contrato->id,
             'cantidad_horas' => $horas,
             'estado' => $estado,
         ]);
@@ -232,4 +229,20 @@ it('permite registrar un contrato a plazo fijo sin numero de contrato', function
     expect($nuevo->tipo)->toBe('Plazo Fijo')
         ->and($nuevo->numero_contrato)->toBeNull()
         ->and($this->contrato->fresh()->es_vigente)->toBeFalse();
+});
+
+it('registra compensaciones a un empleado activo aunque no tenga contrato vigente', function () {
+    $empleado = Empleado::factory()->create(['estado' => true]);
+
+    Livewire::test('compensaciones')
+        ->call('create')
+        ->assertSee($empleado->nombre_completo)
+        ->set('form.empleado_id', $empleado->id)
+        ->set('form.gestion_id', $this->gestion->id)
+        ->set('form.cantidad_horas_horas', 3)
+        ->set('form.fecha_registro', '2026-03-10')
+        ->call('save')
+        ->assertHasNoErrors();
+
+    expect((float) Compensacion::firstWhere('empleado_id', $empleado->id)->cantidad_horas)->toBe(3.0);
 });

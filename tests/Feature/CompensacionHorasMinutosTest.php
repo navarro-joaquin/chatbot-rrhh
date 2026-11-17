@@ -49,8 +49,7 @@ it('registra una compensacion con horas y minutos', function () {
     $compensacion = Compensacion::where('empleado_id', $empleado->id)->first();
 
     expect($compensacion)->not->toBeNull()
-        ->and((float) $compensacion->cantidad_horas)->toBe(5.5)
-        ->and($compensacion->contrato_id)->toBe($contrato->id);
+        ->and((float) $compensacion->cantidad_horas)->toBe(5.5);
 });
 
 it('registra una solicitud de 15 minutos', function () {
@@ -59,7 +58,6 @@ it('registra una solicitud de 15 minutos', function () {
     Compensacion::create([
         'empleado_id' => $empleado->id,
         'gestion_id' => $gestion->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 8,
         'fecha_registro' => '2026-03-01',
         'estado' => 'disponible',

@@ -20,7 +20,6 @@ it('descuenta horas de compensacion usando FIFO por gestion y fecha', function (
     Compensacion::create([
         'empleado_id' => $empleado->id,
         'gestion_id' => $gestion2025->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 2,
         'descripcion' => 'Saldo mas antiguo',
         'fecha_registro' => '2025-03-01',
@@ -30,7 +29,6 @@ it('descuenta horas de compensacion usando FIFO por gestion y fecha', function (
     Compensacion::create([
         'empleado_id' => $empleado->id,
         'gestion_id' => $gestion2026->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 5,
         'descripcion' => 'Saldo reciente',
         'fecha_registro' => '2026-01-10',
@@ -75,7 +73,6 @@ it('solo suma horas disponibles de compensacion', function () {
     Compensacion::create([
         'empleado_id' => $empleado->id,
         'gestion_id' => $gestion2026->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 6,
         'descripcion' => 'Horas vigentes',
         'fecha_registro' => '2026-02-15',
@@ -85,7 +82,6 @@ it('solo suma horas disponibles de compensacion', function () {
     Compensacion::create([
         'empleado_id' => $empleado->id,
         'gestion_id' => $gestion2026->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 8,
         'descripcion' => 'Horas usadas',
         'fecha_registro' => '2026-02-20',
@@ -95,7 +91,6 @@ it('solo suma horas disponibles de compensacion', function () {
     Compensacion::create([
         'empleado_id' => $empleado->id,
         'gestion_id' => $gestion2026->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 10,
         'descripcion' => 'Horas vencidas',
         'fecha_registro' => '2026-02-25',
@@ -117,7 +112,6 @@ it('actualiza una solicitud reduciendo horas y devuelve saldo correctamente', fu
     Compensacion::create([
         'empleado_id' => $empleado->id,
         'gestion_id' => $gestion2025->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 2,
         'descripcion' => 'Saldo antiguo',
         'fecha_registro' => '2025-03-01',
@@ -127,7 +121,6 @@ it('actualiza una solicitud reduciendo horas y devuelve saldo correctamente', fu
     Compensacion::create([
         'empleado_id' => $empleado->id,
         'gestion_id' => $gestion2026->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 5,
         'descripcion' => 'Saldo reciente',
         'fecha_registro' => '2026-01-10',
@@ -177,7 +170,6 @@ it('actualiza una solicitud aumentando horas y descuenta saldo con FIFO', functi
     Compensacion::create([
         'empleado_id' => $empleado->id,
         'gestion_id' => $gestion2025->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 2,
         'descripcion' => 'Saldo antiguo',
         'fecha_registro' => '2025-03-01',
@@ -187,7 +179,6 @@ it('actualiza una solicitud aumentando horas y descuenta saldo con FIFO', functi
     Compensacion::create([
         'empleado_id' => $empleado->id,
         'gestion_id' => $gestion2026->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 5,
         'descripcion' => 'Saldo reciente',
         'fecha_registro' => '2026-01-10',

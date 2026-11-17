@@ -48,7 +48,7 @@ final class CompensacionTable extends PowerGridComponent
         return $this->aplicarBusqueda(Compensacion::query()
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
             ->whereHas('empleado')
-            ->with(['empleado', 'gestion', 'contrato']));
+            ->with(['empleado', 'gestion']));
     }
 
     /**
@@ -67,7 +67,6 @@ final class CompensacionTable extends PowerGridComponent
         return PowerGrid::fields()
             ->add('empleado_nombre', fn (Compensacion $model) => $model->empleado->nombre_completo)
             ->add('gestion_anio', fn (Compensacion $model) => $model->gestion->anio)
-            ->add('contrato_ref', fn (Compensacion $model) => $model->contrato?->numero_contrato ?: ($model->contrato?->nro_item ?? '-'))
             ->add('cantidad_horas')
             ->add('equivalencia_horas', fn (Compensacion $model) => VacacionesTiempo::aTextoHoras((float) $model->cantidad_horas) ?? '—')
             ->add('descripcion')
@@ -94,8 +93,6 @@ final class CompensacionTable extends PowerGridComponent
                 Gestion::select('anio')->whereColumn('gestiones.id', 'compensaciones.gestion_id'),
                 $direction
             ));
-
-        $columns[] = Column::make('Contrato', 'contrato_ref');
 
         $columns[] = Column::make('Cant. Horas', 'cantidad_horas')
             ->sortable();

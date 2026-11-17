@@ -84,7 +84,6 @@ it('rechaza la solicitud de compensacion sin guardar nada si el saldo no alcanza
     Compensacion::create([
         'empleado_id' => $this->empleado->id,
         'gestion_id' => $this->gestion->id,
-        'contrato_id' => $contrato->id,
         'cantidad_horas' => 4,
         'estado' => 'disponible',
     ]);

@@ -11,7 +11,6 @@ class Compensacion extends BaseModel
     protected $fillable = [
         'empleado_id',
         'gestion_id',
-        'contrato_id',
         'cantidad_horas',
         'descripcion',
         'fecha_registro',
@@ -34,10 +33,5 @@ class Compensacion extends BaseModel
     public function gestion(): BelongsTo
     {
         return $this->belongsTo(Gestion::class);
-    }
-
-    public function contrato(): BelongsTo
-    {
-        return $this->belongsTo(EmpleadoContrato::class, 'contrato_id');
     }
 }

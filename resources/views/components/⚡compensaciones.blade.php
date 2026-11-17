@@ -3,7 +3,6 @@
 use App\Livewire\Forms\CompensacionForm;
 use App\Models\Compensacion;
 use App\Models\Empleado;
-use App\Models\EmpleadoContrato;
 use App\Models\Gestion;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -21,11 +20,6 @@ new class extends Component
         $this->form->estado = 'disponible';
         $this->message = '';
         $this->showModal = true;
-    }
-
-    public function updatedFormEmpleadoId(): void
-    {
-        $this->form->syncContratoVigente();
     }
 
     #[On('edit')]
@@ -64,17 +58,9 @@ new class extends Component
 
     public function with(): array
     {
-        $contratoVigente = $this->form->empleado_id
-            ? EmpleadoContrato::query()
-                ->where('empleado_id', $this->form->empleado_id)
-                ->where('es_vigente', true)
-                ->first()
-            : null;
-
         return [
             'empleados' => Empleado::query()
                 ->where('estado', true)
-                ->whereHas('contratoVigente')
                 ->orderBy('nombre_completo')
                 ->get(),
             'gestiones' => Gestion::orderBy('anio', 'desc')->get(),
@@ -83,7 +69,6 @@ new class extends Component
                 'utilizado' => 'Utilizado',
                 'vencido' => 'Vencido',
             ],
-            'contratoVigente' => $contratoVigente,
         ];
     }
 };
@@ -114,13 +99,13 @@ new class extends Component
         <form wire:submit="save" class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ $form->compensacion ? 'Editar' : 'Nueva' }} Compensacion</flux:heading>
-                <flux:subheading>Registre las horas compensatorias asignadas a un empleado usando su contrato vigente.</flux:subheading>
+                <flux:subheading>Registre las horas compensatorias asignadas a un empleado.</flux:subheading>
             </div>
 
             <div class="grid grid-cols-1 gap-4">
                 <flux:field>
                     <flux:label>Empleado</flux:label>
-                    <flux:select wire:model.live="form.empleado_id">
+                    <flux:select wire:model="form.empleado_id">
                         <flux:select.option value="">Seleccione un empleado...</flux:select.option>
                         @foreach ($empleados as $empleado)
                             <flux:select.option value="{{ $empleado->id }}">{{ $empleado->nombre_completo }}</flux:select.option>
@@ -128,31 +113,6 @@ new class extends Component
                     </flux:select>
                     <flux:error name="form.empleado_id" />
                 </flux:field>
-
-                <flux:field>
-                    <flux:label>Contrato vigente</flux:label>
-                    <flux:select wire:model="form.contrato_id" :disabled="! $form->empleado_id || ! $contratoVigente">
-                        <flux:select.option value="">
-                            {{ $form->empleado_id ? 'Seleccione un contrato vigente...' : 'Primero seleccione un empleado...' }}
-                        </flux:select.option>
-                        @if ($contratoVigente)
-                            <flux:select.option value="{{ $contratoVigente->id }}">
-                                {{ $contratoVigente->numero_contrato ?: ($contratoVigente->nro_item ?: 'Contrato #'.$contratoVigente->id) }}
-                            </flux:select.option>
-                        @endif
-                    </flux:select>
-                    <flux:error name="form.contrato_id" />
-                </flux:field>
-
-                @if ($contratoVigente)
-                    <div class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-600 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300">
-                        Tipo: {{ $contratoVigente->tipo }} | Inicio: {{ $contratoVigente->fecha_inicio?->format('d/m/Y') ?? 'Sin fecha' }} | Estado: {{ $contratoVigente->estado }}
-                    </div>
-                @elseif ($form->empleado_id)
-                    <div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                        El empleado seleccionado no tiene un contrato vigente marcado.
-                    </div>
-                @endif
 
                 <flux:field>
                     <flux:label>Gestion</flux:label>

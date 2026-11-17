@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Compensacion;
 use App\Models\EmpleadoContrato;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -24,7 +23,7 @@ class ProcesarFinContrato extends Command
      *
      * @var string
      */
-    protected $description = 'Finaliza contratos a plazo fijo vencidos y marca sus compensaciones como vencidas.';
+    protected $description = 'Finaliza los contratos a plazo fijo vencidos. Las compensaciones del empleado no se modifican.';
 
     /**
      * Execute the console command.
@@ -55,11 +54,6 @@ class ProcesarFinContrato extends Command
 
         foreach ($contratos as $contrato) {
             DB::transaction(function () use ($contrato, &$procesados, $today): void {
-                $compensacionesActualizadas = Compensacion::query()
-                    ->where('contrato_id', $contrato->id)
-                    ->where('estado', '!=', 'vencido')
-                    ->update(['estado' => 'vencido']);
-
                 $contrato->update([
                     'estado' => 'Finalizado',
                     'es_vigente' => false,
@@ -68,8 +62,7 @@ class ProcesarFinContrato extends Command
                 $procesados++;
 
                 $this->info(
-                    "Contrato #{$contrato->id} finalizado para {$contrato->empleado->nombre_completo}. ".
-                    "Compensaciones vencidas: {$compensacionesActualizadas}."
+                    "Contrato #{$contrato->id} finalizado para {$contrato->empleado->nombre_completo}."
                 );
 
                 Log::info('Fin de contrato procesado automáticamente.', [
@@ -79,7 +72,6 @@ class ProcesarFinContrato extends Command
                     'empleado' => $contrato->empleado->nombre_completo,
                     'tipo' => $contrato->tipo,
                     'fecha_fin' => $contrato->fecha_fin?->toDateString(),
-                    'compensaciones_vencidas' => $compensacionesActualizadas,
                 ]);
             });
         }

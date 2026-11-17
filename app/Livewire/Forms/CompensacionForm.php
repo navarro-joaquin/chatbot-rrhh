@@ -3,10 +3,7 @@
 namespace App\Livewire\Forms;
 
 use App\Models\Compensacion;
-use App\Models\Empleado;
-use App\Models\EmpleadoContrato;
 use App\Support\VacacionesTiempo;
-use Closure;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
@@ -19,9 +16,6 @@ class CompensacionForm extends Form
 
     #[Validate]
     public ?int $gestion_id = null;
-
-    #[Validate]
-    public ?int $contrato_id = null;
 
     #[Validate]
     public ?float $cantidad_horas = 0;
@@ -46,25 +40,6 @@ class CompensacionForm extends Form
         return [
             'empleado_id' => ['required', 'exists:empleados,id'],
             'gestion_id' => ['required', 'exists:gestiones,id'],
-            'contrato_id' => [
-                'required',
-                'exists:empleado_contratos,id',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if (! $this->empleado_id || ! $value) {
-                        return;
-                    }
-
-                    $contrato = EmpleadoContrato::query()
-                        ->whereKey($value)
-                        ->where('empleado_id', $this->empleado_id)
-                        ->where('es_vigente', true)
-                        ->first();
-
-                    if (! $contrato) {
-                        $fail('Debe seleccionar un contrato vigente del empleado.');
-                    }
-                },
-            ],
             'cantidad_horas' => ['required', 'numeric', 'min:0', 'max:999.99'],
             'cantidad_horas_horas' => ['required', 'integer', 'min:0', 'max:999'],
             'cantidad_horas_minutos' => ['required', 'integer', 'min:0', 'max:59'],
@@ -79,7 +54,6 @@ class CompensacionForm extends Form
         return [
             'empleado_id' => 'empleado',
             'gestion_id' => 'gestion',
-            'contrato_id' => 'contrato vigente',
             'cantidad_horas' => 'cantidad de horas',
             'cantidad_horas_horas' => 'horas',
             'cantidad_horas_minutos' => 'minutos',
@@ -109,7 +83,6 @@ class CompensacionForm extends Form
         $this->compensacion = $compensacion;
         $this->empleado_id = $compensacion->empleado_id;
         $this->gestion_id = $compensacion->gestion_id;
-        $this->contrato_id = $compensacion->contrato_id;
         $this->cantidad_horas = (float) $compensacion->cantidad_horas;
 
         $partes = VacacionesTiempo::aPartesHoras((float) $compensacion->cantidad_horas);
@@ -121,27 +94,8 @@ class CompensacionForm extends Form
         $this->estado = $compensacion->estado;
     }
 
-    public function syncContratoVigente(): void
-    {
-        if (! $this->empleado_id) {
-            $this->contrato_id = null;
-
-            return;
-        }
-
-        $this->contrato_id = Empleado::query()
-            ->with('contratoVigente')
-            ->find($this->empleado_id)
-            ?->contratoVigente
-            ?->id;
-    }
-
     public function save(): void
     {
-        if (! $this->contrato_id && $this->empleado_id) {
-            $this->syncContratoVigente();
-        }
-
         $this->sincronizarCantidadHoras();
         $this->validate();
 
