@@ -21,6 +21,11 @@ class DatabaseSeeder extends Seeder
         //        ]);
         $this->call([
             StartupSeeder::class,
+            PersonalSeeder::class,
+            ContratoSeeder::class,
+            ContratoPlazoFijoSeeder::class,
+            VacacionSeeder::class,
+            CompensacionSeeder::class,
         ]);
     }
 }

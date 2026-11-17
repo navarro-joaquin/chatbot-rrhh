@@ -7,12 +7,7 @@ new class extends Component
 {
     public ?int $empleadoId = null;
 
-    public function mount()
-    {
-        // Podríamos pre-seleccionar uno o dejarlo nulo para ver todos
-    }
-
-    public function with()
+    public function with(): array
     {
         return [
             'empleados' => Empleado::whereHas('contratoVigente', fn ($query) => $query->where('tipo', 'Indefinido'))
@@ -30,9 +25,8 @@ new class extends Component
 
     <div class="mb-6">
         <flux:field class="max-w-md">
-            <flux:label>Filtrar por Empleado</flux:label>
-            <flux:select wire:model.live="empleadoId" placeholder="Todos los empleados">
-                <flux:select.option value="">Todos los empleados</flux:select.option>
+            <flux:label>Empleado</flux:label>
+            <flux:select wire:model.live="empleadoId" placeholder="Seleccione un empleado...">
                 @foreach ($empleados as $empleado)
                     <flux:select.option value="{{ $empleado->id }}">{{ $empleado->nombre_completo }}</flux:select.option>
                 @endforeach

@@ -72,26 +72,28 @@ it('ordena vacaciones por empleado sin error de columna', function () {
     Vacacion::create(['empleado_id' => $victor->id, 'gestion_id' => $gestion->id, 'dias_disponibles' => 7]);
 
     Livewire::test(VacacionTable::class)
-        ->call('sortBy', 'empleados.nombre_completo')
+        ->call('sortBy', 'vacaciones.empleado_id')
         ->assertSee('Ana Orden')
         ->assertSee('Victor Orden');
 });
 
-it('ordena las vacaciones por nombre de empleado y luego por gestion', function () {
+it('ordena las vacaciones por id de empleado y luego por gestion', function () {
     $gestion2024 = Gestion::create(['anio' => 2024]);
     $gestion2025 = Gestion::create(['anio' => 2025]);
     $gestion2026 = Gestion::create(['anio' => 2026]);
 
+    // Zoe se registra primero (id menor), así que va antes que Ana aunque su nombre sea posterior.
     $zoe = crearEmpleadoBusqueda('Zoe Orden', '04');
     $ana = crearEmpleadoBusqueda('Ana Orden', '05');
 
-    Vacacion::create(['empleado_id' => $zoe->id, 'gestion_id' => $gestion2024->id, 'dias_disponibles' => 1]);
     Vacacion::create(['empleado_id' => $ana->id, 'gestion_id' => $gestion2026->id, 'dias_disponibles' => 2]);
-    Vacacion::create(['empleado_id' => $ana->id, 'gestion_id' => $gestion2025->id, 'dias_disponibles' => 3]);
+    Vacacion::create(['empleado_id' => $zoe->id, 'gestion_id' => $gestion2025->id, 'dias_disponibles' => 1]);
+    Vacacion::create(['empleado_id' => $ana->id, 'gestion_id' => $gestion2024->id, 'dias_disponibles' => 3]);
+    Vacacion::create(['empleado_id' => $zoe->id, 'gestion_id' => $gestion2024->id, 'dias_disponibles' => 4]);
 
     Livewire::test(VacacionTable::class)
-        ->assertSet('sortField', 'empleados.nombre_completo')
-        ->assertSeeInOrder(['Ana Orden', '2025', 'Ana Orden', '2026', 'Zoe Orden', '2024']);
+        ->assertSet('sortField', 'vacaciones.empleado_id')
+        ->assertSeeInOrder(['Zoe Orden', '2024', 'Zoe Orden', '2025', 'Ana Orden', '2024', 'Ana Orden', '2026']);
 });
 
 it('ordena el detalle de vacaciones del empleado por gestion', function () {

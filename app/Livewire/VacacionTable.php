@@ -33,9 +33,9 @@ final class VacacionTable extends PowerGridComponent
 
     public function setUp(): array
     {
-        // Orden inicial: por nombre del empleado y luego por gestión (en el detalle solo hay un empleado).
+        // Orden inicial: por id del empleado y luego por gestión (en el detalle solo hay un empleado).
         if ($this->sortField === 'id') {
-            $this->sortField = $this->isDetailView ? 'gestiones.anio' : 'empleados.nombre_completo';
+            $this->sortField = $this->isDetailView ? 'gestiones.anio' : 'vacaciones.empleado_id';
         }
 
         return [
@@ -86,10 +86,10 @@ final class VacacionTable extends PowerGridComponent
 
         // Ocultar columna empleado si es vista de detalle
         if (! $this->isDetailView) {
-            $columns[] = Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
+            $columns[] = Column::make('Empleado', 'empleado_nombre', 'vacaciones.empleado_id')
                 ->sortable()
                 ->sortUsing(fn ($query, $direction) => $query
-                    ->orderBy($this->subconsultaNombreEmpleado(), $direction)
+                    ->orderBy('vacaciones.empleado_id', $direction)
                     ->orderBy($this->subconsultaAnioGestion()));
         }
 
@@ -97,7 +97,7 @@ final class VacacionTable extends PowerGridComponent
             ->sortable()
             ->sortUsing(fn ($query, $direction) => $query
                 ->orderBy($this->subconsultaAnioGestion(), $direction)
-                ->orderBy($this->subconsultaNombreEmpleado()));
+                ->orderBy('vacaciones.empleado_id'));
 
         $columns[] = Column::make('Días Disponibles', 'dias_disponibles')
             ->sortable();
@@ -113,14 +113,6 @@ final class VacacionTable extends PowerGridComponent
             );
 
         return $columns;
-    }
-
-    /**
-     * Nombre del empleado de cada fila, para ordenar sin unir tablas.
-     */
-    private function subconsultaNombreEmpleado(): Builder
-    {
-        return Empleado::select('nombre_completo')->whereColumn('empleados.id', 'vacaciones.empleado_id');
     }
 
     /**

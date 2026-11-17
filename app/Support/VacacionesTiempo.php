@@ -74,6 +74,17 @@ final class VacacionesTiempo
     }
 
     /**
+     * Texto legible de días decimales que también admite cero y negativos.
+     * Ej: "-3 días y 4 horas", "0 días".
+     */
+    public static function aTextoDiasConSigno(float $dias): string
+    {
+        $texto = self::aTextoDias(abs($dias)) ?? '0 días';
+
+        return $texto !== '0 días' && $dias < 0 ? '-'.$texto : $texto;
+    }
+
+    /**
      * Texto legible de horas decimales. Ej: "5 horas y 30 minutos".
      */
     public static function aTextoHoras(float $horas): ?string

@@ -19,3 +19,10 @@ it('genera textos legibles de dias y horas', function () {
         ->and(VacacionesTiempo::aTextoHoras(5.5))->toBe('5 horas y 30 minutos')
         ->and(VacacionesTiempo::aTextoHoras(0))->toBeNull();
 });
+
+it('genera textos de dias con signo para movimientos y saldos', function () {
+    expect(VacacionesTiempo::aTextoDiasConSigno(15))->toBe('15 días')
+        ->and(VacacionesTiempo::aTextoDiasConSigno(-3.5))->toBe('-3 días y 4 horas')
+        ->and(VacacionesTiempo::aTextoDiasConSigno(0))->toBe('0 días')
+        ->and(VacacionesTiempo::aTextoDiasConSigno(-0.00001))->toBe('0 días');
+});
