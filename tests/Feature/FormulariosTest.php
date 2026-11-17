@@ -195,6 +195,29 @@ it('al registrar un nuevo contrato vigente deja de estar vigente el anterior', f
         ->and($this->contrato->fresh()->es_vigente)->toBeFalse();
 });
 
+it('muestra en el detalle del empleado la suma de los saldos de vacaciones y compensaciones', function () {
+    $gestionAnterior = Gestion::create(['anio' => 2025]);
+
+    Vacacion::create(['empleado_id' => $this->empleado->id, 'gestion_id' => $gestionAnterior->id, 'dias_disponibles' => 10]);
+    Vacacion::create(['empleado_id' => $this->empleado->id, 'gestion_id' => $this->gestion->id, 'dias_disponibles' => 5.5]);
+
+    foreach ([['disponible', 6], ['disponible', 4.5], ['vencido', 8]] as [$estado, $horas]) {
+        Compensacion::create([
+            'empleado_id' => $this->empleado->id,
+            'gestion_id' => $this->gestion->id,
+            'contrato_id' => $this->contrato->id,
+            'cantidad_horas' => $horas,
+            'estado' => $estado,
+        ]);
+    }
+
+    Livewire::test('empleado-detalle', ['id' => $this->empleado->id])
+        ->assertSee('Saldo total de vacaciones:')
+        ->assertSee('15 días y 4 horas')
+        ->assertSee('Saldo total de compensaciones disponibles:')
+        ->assertSee('10 horas y 30 minutos');
+});
+
 it('permite registrar un contrato a plazo fijo sin numero de contrato', function () {
     Livewire::test('empleado-detalle', ['id' => $this->empleado->id])
         ->call('createContrato')

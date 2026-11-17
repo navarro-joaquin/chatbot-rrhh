@@ -34,10 +34,12 @@ Parámetros de `/empleados`: `estado` (`1` activos, `0` inactivos; sin valor dev
 {
   "id": 1,
   "nombre_completo": "Ana Perez",
+  "carnet_identidad": "1234567",
   "correo_electronico": "ana@example.com",
   "telefono": "70000001",
   "nro_item": "145",
-  "activo": true
+  "activo": true,
+  "fecha_registro": "2026-10-15T12:00:00.000000Z"
 }
 ```
 

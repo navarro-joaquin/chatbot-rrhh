@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Middleware\AsegurarCambioPassword;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -9,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::define('gestionar-usuarios', fn (User $user): bool => $user->esAdministrador());
         Gate::define('restaurar-empleados', fn (User $user): bool => $user->esAdministrador());
+
+        Livewire::addPersistentMiddleware([AsegurarCambioPassword::class]);
     }
 
     /**

@@ -114,7 +114,7 @@ new class extends Component
     <livewire:empleado-table :solo-eliminados="$verEliminados" :key="'empleados-table-'.(int) $verEliminados" />
 
     {{-- Modal Form --}}
-    <flux:modal wire:model="showModal" variant="wide">
+    <flux:modal wire:model="showModal" class="md:w-96">
         <form wire:submit="save" class="space-y-6">
             <div>
                 <flux:heading size="lg">{{ $form->empleado ? 'Editar' : 'Nuevo' }} Empleado</flux:heading>
@@ -146,7 +146,7 @@ new class extends Component
                     <flux:error name="form.correo_electronico" />
                 </flux:field>
 
-                <div class="flex items-center gap-2 pt-8">
+                <div class="flex items-center gap-2">
                     <flux:switch wire:model="form.estado" />
                     <flux:label>Empleado Activo</flux:label>
                 </div>

@@ -122,6 +122,12 @@ new class extends Component
                 <flux:error name="form.password" />
             </flux:field>
 
+            <flux:field variant="inline">
+                <flux:checkbox wire:model="form.debe_cambiar_contrasena" />
+                <flux:label>Solicitar cambio de contraseña en el próximo inicio de sesión</flux:label>
+                <flux:error name="form.debe_cambiar_contrasena" />
+            </flux:field>
+
             <div class="flex">
                 <flux:spacer />
                 <flux:button type="submit" variant="primary">Guardar</flux:button>

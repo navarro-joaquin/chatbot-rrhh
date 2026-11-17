@@ -38,6 +38,7 @@ final class UserTable extends PowerGridComponent
             ->add('name')
             ->add('email')
             ->add('rol_label', fn (User $model) => $model->rol?->label())
+            ->add('debe_cambiar_contrasena_label', fn (User $model) => $model->debe_cambiar_contrasena ? 'Pendiente' : '—')
             ->add('created_at_formatted', fn (User $model) => $model->created_at->format('d/m/Y H:i'));
     }
 
@@ -56,6 +57,9 @@ final class UserTable extends PowerGridComponent
                 ->sortable(),
 
             Column::make('Perfil', 'rol_label', 'rol')
+                ->sortable(),
+
+            Column::make('Cambio de contraseña', 'debe_cambiar_contrasena_label', 'debe_cambiar_contrasena')
                 ->sortable(),
 
             Column::make('Fecha Creación', 'created_at_formatted', 'created_at')

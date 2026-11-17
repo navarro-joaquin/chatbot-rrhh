@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\BusquedaAgrupada;
 use App\Models\ConsolidacionVacacion;
 use App\Models\Empleado;
 use App\Models\Gestion;
@@ -14,6 +15,8 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 
 final class ConsolidacionVacacionTable extends PowerGridComponent
 {
+    use BusquedaAgrupada;
+
     public string $tableName = 'consolidacionVacacionTable';
 
     public function boot(): void
@@ -34,16 +37,23 @@ final class ConsolidacionVacacionTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return ConsolidacionVacacion::query()
+        return $this->aplicarBusqueda(ConsolidacionVacacion::query()
             ->whereHas('empleado')
-            ->with(['empleado', 'gestion']);
+            ->with(['empleado', 'gestion']));
     }
 
-    public function relationSearch(): array
+    /**
+     * @return list<string>
+     */
+    protected function camposBusqueda(): array
     {
         return [
-            'empleado' => 'nombre_completo',
-            'gestion' => 'anio',
+            'empleado.nombre_completo',
+            'gestion.anio',
+            'dias_anadidos',
+            'dias_totales_despues',
+            'origen',
+            'accion',
         ];
     }
 
@@ -62,34 +72,28 @@ final class ConsolidacionVacacionTable extends PowerGridComponent
     {
         return [
             Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
-                ->searchable()
                 ->sortable()
                 ->sortUsing(fn ($query, $direction) => $query->orderBy(
                     Empleado::select('nombre_completo')->whereColumn('empleados.id', 'consolidacion_vacaciones.empleado_id'),
                     $direction
                 )),
             Column::make('Gestión', 'gestion_anio', 'gestiones.anio')
-                ->searchable()
                 ->sortable()
                 ->sortUsing(fn ($query, $direction) => $query->orderBy(
                     Gestion::select('anio')->whereColumn('gestiones.id', 'consolidacion_vacaciones.gestion_id'),
                     $direction
                 )),
             Column::make('Días añadidos', 'dias_anadidos')
-                ->sortable()
-                ->searchable(),
+                ->sortable(),
 
             Column::make('Días totales después', 'dias_totales_despues')
-                ->sortable()
-                ->searchable(),
+                ->sortable(),
 
             Column::make('Origen', 'origen')
-                ->sortable()
-                ->searchable(),
+                ->sortable(),
 
             Column::make('Acción', 'accion')
-                ->sortable()
-                ->searchable(),
+                ->sortable(),
         ];
     }
 

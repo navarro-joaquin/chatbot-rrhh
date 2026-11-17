@@ -5,6 +5,7 @@ use App\Livewire\Forms\EmpleadoContratoForm;
 use App\Models\Empleado;
 use App\Models\EmpleadoAntiguedad;
 use App\Models\EmpleadoContrato;
+use App\Support\VacacionesTiempo;
 use Carbon\Carbon;
 use Livewire\Attributes\On;
 use Livewire\Component;
@@ -135,6 +136,20 @@ new class extends Component
         $this->setFormDefaults();
         $this->message = 'Antiguedad eliminada.';
         $this->dispatch('pg:eventRefresh-empleado-antiguedades-table');
+    }
+
+    public function getSaldoVacacionesTextoProperty(): string
+    {
+        $dias = (float) $this->empleado->vacaciones()->sum('dias_disponibles');
+
+        return VacacionesTiempo::aTextoDias($dias) ?? '0 días';
+    }
+
+    public function getSaldoCompensacionesTextoProperty(): string
+    {
+        $horas = (float) $this->empleado->compensaciones()->where('estado', 'disponible')->sum('cantidad_horas');
+
+        return VacacionesTiempo::aTextoHoras($horas) ?? '0 horas';
     }
 
     public function getAntiguedadVigenteTextoProperty(): string
@@ -268,6 +283,9 @@ new class extends Component
                 <flux:heading size="lg">Vacaciones</flux:heading>
             </div>
             <livewire:vacacion-table :empleado-id="$empleado->id" :is-detail-view="true" />
+            <flux:text class="text-sm">
+                Saldo total de vacaciones: <span class="font-semibold text-zinc-900 dark:text-white">{{ $this->saldoVacacionesTexto }}</span>
+            </flux:text>
         </section>
 
         <section class="space-y-4 mt-4">
@@ -284,6 +302,9 @@ new class extends Component
                 <flux:heading size="lg">Compensaciones</flux:heading>
             </div>
             <livewire:compensacion-table :empleado-id="$empleado->id" :is-detail-view="true" />
+            <flux:text class="text-sm">
+                Saldo total de compensaciones disponibles: <span class="font-semibold text-zinc-900 dark:text-white">{{ $this->saldoCompensacionesTexto }}</span>
+            </flux:text>
         </section>
 
         <section class="space-y-4 mt-4">

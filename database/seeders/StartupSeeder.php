@@ -68,6 +68,7 @@ class StartupSeeder extends Seeder
             'email' => 'admin@admin.com',
             'rol' => Rol::Administrador,
             'password' => Hash::make('Passw0rd'),
+            'debe_cambiar_contrasena' => true,
         ]);
     }
 }

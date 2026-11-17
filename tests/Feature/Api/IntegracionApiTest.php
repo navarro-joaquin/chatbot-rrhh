@@ -45,11 +45,12 @@ it('rechaza peticiones sin token', function () {
     $this->getJson('/api/v1/integracion/empleados')->assertUnauthorized();
 });
 
-it('lista empleados con nombre, correo, celular y nro de item del contrato vigente', function () {
+it('lista empleados con nombre, carnet, correo, celular, nro de item del contrato vigente y fecha de registro', function () {
     autenticarIntegracion();
 
     $empleado = Empleado::factory()->create([
         'nombre_completo' => 'Ana Perez',
+        'carnet_identidad' => '1234567',
         'correo_electronico' => 'ana@example.com',
         'telefono' => '70000001',
     ]);
@@ -78,11 +79,14 @@ it('lista empleados con nombre, correo, celular y nro de item del contrato vigen
         ->assertJsonPath('data.0.correo_electronico', 'ana@example.com')
         ->assertJsonPath('data.0.telefono', '70000001')
         ->assertJsonPath('data.0.nro_item', '145')
-        ->assertJsonMissingPath('data.0.carnet_identidad');
+        ->assertJsonPath('data.0.carnet_identidad', '1234567')
+        ->assertJsonPath('data.0.fecha_registro', $empleado->created_at->toJSON());
 
     $this->getJson("/api/v1/integracion/empleados/{$empleado->id}")
         ->assertOk()
-        ->assertJsonPath('data.nro_item', '145');
+        ->assertJsonPath('data.nro_item', '145')
+        ->assertJsonPath('data.carnet_identidad', '1234567')
+        ->assertJsonPath('data.fecha_registro', $empleado->created_at->toJSON());
 });
 
 it('filtra empleados por estado', function () {

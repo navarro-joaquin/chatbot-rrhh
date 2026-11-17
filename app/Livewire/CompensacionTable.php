@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\BusquedaAgrupada;
 use App\Models\Compensacion;
 use App\Models\Empleado;
 use App\Models\Gestion;
@@ -17,6 +18,8 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 
 final class CompensacionTable extends PowerGridComponent
 {
+    use BusquedaAgrupada;
+
     public string $tableName = 'compensaciones-table';
 
     public ?int $empleadoId = null;
@@ -42,17 +45,20 @@ final class CompensacionTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return Compensacion::query()
+        return $this->aplicarBusqueda(Compensacion::query()
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
             ->whereHas('empleado')
-            ->with(['empleado', 'gestion', 'contrato']);
+            ->with(['empleado', 'gestion', 'contrato']));
     }
 
-    public function relationSearch(): array
+    /**
+     * @return list<string>
+     */
+    protected function camposBusqueda(): array
     {
         return [
-            'empleado' => 'nombre_completo',
-            'gestion' => 'anio',
+            'empleado.nombre_completo',
+            'gestion.anio',
         ];
     }
 
@@ -75,7 +81,6 @@ final class CompensacionTable extends PowerGridComponent
 
         if (! $this->isDetailView) {
             $columns[] = Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
-                ->searchable()
                 ->sortable()
                 ->sortUsing(fn ($query, $direction) => $query->orderBy(
                     Empleado::select('nombre_completo')->whereColumn('empleados.id', 'compensaciones.empleado_id'),
@@ -84,7 +89,6 @@ final class CompensacionTable extends PowerGridComponent
         }
 
         $columns[] = Column::make('Gestion', 'gestion_anio', 'gestiones.anio')
-            ->searchable()
             ->sortable()
             ->sortUsing(fn ($query, $direction) => $query->orderBy(
                 Gestion::select('anio')->whereColumn('gestiones.id', 'compensaciones.gestion_id'),

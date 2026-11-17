@@ -19,10 +19,12 @@ class EmpleadoResource extends JsonResource
         return [
             'id' => $this->id,
             'nombre_completo' => $this->nombre_completo,
+            'carnet_identidad' => $this->carnet_identidad,
             'correo_electronico' => $this->correo_electronico,
             'telefono' => $this->telefono,
             'nro_item' => $this->contratoVigente?->nro_item,
             'activo' => $this->estado,
+            'fecha_registro' => $this->created_at,
         ];
     }
 }

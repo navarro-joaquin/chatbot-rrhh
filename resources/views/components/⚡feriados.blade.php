@@ -117,7 +117,7 @@ new class extends Component
                     <flux:error name="form.gestion_id" />
                 </flux:field>
 
-                <div class="flex items-center gap-2 pt-8">
+                <div class="flex items-center gap-2">
                     <flux:switch wire:model="form.estado" />
                     <flux:label>Feriado activo</flux:label>
                 </div>

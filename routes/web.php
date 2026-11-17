@@ -5,7 +5,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'pages.auth.login')->name('home');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::livewire('cambiar-password', 'pages::auth.cambiar-password')
+    ->middleware('auth')
+    ->name('password.cambiar');
+
+Route::middleware(['auth', 'verified', 'password.cambio'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::livewire('gestiones', 'gestiones')->name('gestiones.index');
     Route::livewire('antiguedades', 'antiguedades')->name('antiguedades.index');

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\BusquedaAgrupada;
 use App\Models\Empleado;
 use App\Models\Gestion;
 use App\Models\Vacacion;
@@ -17,6 +18,8 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 
 final class VacacionTable extends PowerGridComponent
 {
+    use BusquedaAgrupada;
+
     public string $tableName = 'vacaciones-table';
 
     public ?int $empleadoId = null;
@@ -30,6 +33,11 @@ final class VacacionTable extends PowerGridComponent
 
     public function setUp(): array
     {
+        // Orden inicial: por nombre del empleado y luego por gestión (en el detalle solo hay un empleado).
+        if ($this->sortField === 'id') {
+            $this->sortField = $this->isDetailView ? 'gestiones.anio' : 'empleados.nombre_completo';
+        }
+
         return [
             PowerGrid::header()
                 ->showSearchInput()
@@ -42,17 +50,20 @@ final class VacacionTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return Vacacion::query()
+        return $this->aplicarBusqueda(Vacacion::query()
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
             ->whereHas('empleado')
-            ->with(['empleado', 'gestion']);
+            ->with(['empleado', 'gestion']));
     }
 
-    public function relationSearch(): array
+    /**
+     * @return list<string>
+     */
+    protected function camposBusqueda(): array
     {
         return [
-            'empleado' => 'nombre_completo',
-            'gestion' => 'anio',
+            'empleado.nombre_completo',
+            'gestion.anio',
         ];
     }
 
@@ -76,21 +87,17 @@ final class VacacionTable extends PowerGridComponent
         // Ocultar columna empleado si es vista de detalle
         if (! $this->isDetailView) {
             $columns[] = Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
-                ->searchable()
                 ->sortable()
-                ->sortUsing(fn ($query, $direction) => $query->orderBy(
-                    Empleado::select('nombre_completo')->whereColumn('empleados.id', 'vacaciones.empleado_id'),
-                    $direction
-                ));
+                ->sortUsing(fn ($query, $direction) => $query
+                    ->orderBy($this->subconsultaNombreEmpleado(), $direction)
+                    ->orderBy($this->subconsultaAnioGestion()));
         }
 
         $columns[] = Column::make('Gestión', 'gestion_anio', 'gestiones.anio')
-            ->searchable()
             ->sortable()
-            ->sortUsing(fn ($query, $direction) => $query->orderBy(
-                Gestion::select('anio')->whereColumn('gestiones.id', 'vacaciones.gestion_id'),
-                $direction
-            ));
+            ->sortUsing(fn ($query, $direction) => $query
+                ->orderBy($this->subconsultaAnioGestion(), $direction)
+                ->orderBy($this->subconsultaNombreEmpleado()));
 
         $columns[] = Column::make('Días Disponibles', 'dias_disponibles')
             ->sortable();
@@ -106,6 +113,22 @@ final class VacacionTable extends PowerGridComponent
             );
 
         return $columns;
+    }
+
+    /**
+     * Nombre del empleado de cada fila, para ordenar sin unir tablas.
+     */
+    private function subconsultaNombreEmpleado(): Builder
+    {
+        return Empleado::select('nombre_completo')->whereColumn('empleados.id', 'vacaciones.empleado_id');
+    }
+
+    /**
+     * Año de la gestión de cada fila, para ordenar sin unir tablas.
+     */
+    private function subconsultaAnioGestion(): Builder
+    {
+        return Gestion::select('anio')->whereColumn('gestiones.id', 'vacaciones.gestion_id');
     }
 
     public function filters(): array

@@ -202,7 +202,7 @@ new class extends Component
                     <flux:error name="form.estado" />
                 </flux:field>
 
-                <flux:field class="md:col-span-2">
+                <flux:field>
                     <flux:label>Descripcion / Motivo</flux:label>
                     <flux:textarea wire:model="form.descripcion" placeholder="Ej: Horas extras por cierre de gestion..." rows="2" />
                     <flux:error name="form.descripcion" />

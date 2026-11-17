@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\BusquedaAgrupada;
 use App\Models\Empleado;
 use App\Models\SolicitudVacacion;
 use App\Support\EstiloBoton;
@@ -16,6 +17,8 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 
 final class SolicitudVacacionTable extends PowerGridComponent
 {
+    use BusquedaAgrupada;
+
     public string $tableName = 'solicitudes-vacaciones-table';
 
     public ?int $empleadoId = null;
@@ -41,16 +44,20 @@ final class SolicitudVacacionTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return SolicitudVacacion::query()
+        return $this->aplicarBusqueda(SolicitudVacacion::query()
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
             ->whereHas('empleado')
-            ->with(['empleado']);
+            ->with(['empleado']));
     }
 
-    public function relationSearch(): array
+    /**
+     * @return list<string>
+     */
+    protected function camposBusqueda(): array
     {
         return [
-            'empleado' => 'nombre_completo',
+            'empleado.nombre_completo',
+            'motivo',
         ];
     }
 
@@ -72,7 +79,6 @@ final class SolicitudVacacionTable extends PowerGridComponent
         $columns = [
 
             Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
-                ->searchable()
                 ->sortable()
                 ->sortUsing(fn ($query, $direction) => $query->orderBy(
                     Empleado::select('nombre_completo')->whereColumn('empleados.id', 'solicitudes_vacaciones.empleado_id'),
@@ -91,8 +97,7 @@ final class SolicitudVacacionTable extends PowerGridComponent
             Column::make('Equivalencia', 'equivalencia_dias')
                 ->hidden(isHidden: true, isForceHidden: false),
 
-            Column::make('Motivo', 'motivo')
-                ->searchable(),
+            Column::make('Motivo', 'motivo'),
         ];
 
         $columns[] = Column::action('Acciones')

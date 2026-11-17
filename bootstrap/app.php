@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AsegurarCambioPassword;
 use App\Http\Middleware\AuthenticateBotClient;
 use App\Http\Middleware\AuthenticateIntegracionClient;
 use Illuminate\Foundation\Application;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'abilities' => CheckAbilities::class,
             'ability' => CheckForAnyAbility::class,
+            'password.cambio' => AsegurarCambioPassword::class,
             'bot.client' => AuthenticateBotClient::class,
             'integracion.client' => AuthenticateIntegracionClient::class,
         ]);

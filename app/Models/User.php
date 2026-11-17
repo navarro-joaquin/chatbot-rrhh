@@ -29,6 +29,7 @@ class User extends Authenticatable
         'email',
         'rol',
         'password',
+        'debe_cambiar_contrasena',
     ];
 
     /**
@@ -53,6 +54,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'debe_cambiar_contrasena' => 'boolean',
             'rol' => Rol::class,
         ];
     }

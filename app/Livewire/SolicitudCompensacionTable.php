@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\BusquedaAgrupada;
 use App\Models\Empleado;
 use App\Models\SolicitudCompensacion;
 use App\Support\EstiloBoton;
@@ -16,6 +17,8 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 
 final class SolicitudCompensacionTable extends PowerGridComponent
 {
+    use BusquedaAgrupada;
+
     public string $tableName = 'solicitudes-compensaciones-table';
 
     public ?int $empleadoId = null;
@@ -41,16 +44,20 @@ final class SolicitudCompensacionTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return SolicitudCompensacion::query()
+        return $this->aplicarBusqueda(SolicitudCompensacion::query()
             ->when($this->empleadoId, fn ($query) => $query->where('empleado_id', $this->empleadoId))
             ->whereHas('empleado')
-            ->with(['empleado']);
+            ->with(['empleado']));
     }
 
-    public function relationSearch(): array
+    /**
+     * @return list<string>
+     */
+    protected function camposBusqueda(): array
     {
         return [
-            'empleado' => 'nombre_completo',
+            'empleado.nombre_completo',
+            'motivo',
         ];
     }
 
@@ -69,7 +76,6 @@ final class SolicitudCompensacionTable extends PowerGridComponent
     {
         $columns = [
             Column::make('Empleado', 'empleado_nombre', 'empleados.nombre_completo')
-                ->searchable()
                 ->sortable()
                 ->sortUsing(fn ($query, $direction) => $query->orderBy(
                     Empleado::select('nombre_completo')->whereColumn('empleados.id', 'solicitudes_compensaciones.empleado_id'),
@@ -85,8 +91,7 @@ final class SolicitudCompensacionTable extends PowerGridComponent
             Column::make('Equivalencia', 'equivalencia_horas')
                 ->hidden(isHidden: true, isForceHidden: false),
 
-            Column::make('Motivo', 'motivo')
-                ->searchable(),
+            Column::make('Motivo', 'motivo'),
 
             Column::make('Estado', 'estado_label', 'estado')
                 ->sortable(),
