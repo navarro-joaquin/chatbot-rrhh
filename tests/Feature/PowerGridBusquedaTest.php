@@ -5,6 +5,7 @@ use App\Livewire\ConsolidacionVacacionTable;
 use App\Livewire\SolicitudCompensacionTable;
 use App\Livewire\SolicitudVacacionTable;
 use App\Livewire\VacacionTable;
+use App\Models\ConsolidacionVacacion;
 use App\Models\Empleado;
 use App\Models\EmpleadoContrato;
 use App\Models\Gestion;
@@ -142,6 +143,25 @@ it('la busqueda respeta el empleado del detalle', function () {
         ->set('search', '2026')
         ->assertSee('5.2500')
         ->assertDontSee('7.7500');
+});
+
+it('muestra las consolidaciones de la mas reciente a la mas antigua', function () {
+    $gestion = Gestion::create(['anio' => 2026]);
+
+    foreach (['Primera Consolidacion', 'Segunda Consolidacion', 'Tercera Consolidacion'] as $indice => $nombre) {
+        ConsolidacionVacacion::create([
+            'empleado_id' => crearEmpleadoBusqueda($nombre, '1'.$indice)->id,
+            'gestion_id' => $gestion->id,
+            'dias_anadidos' => 15,
+            'dias_totales_despues' => 15,
+            'origen' => 'contrato',
+            'accion' => 'creada',
+        ]);
+    }
+
+    Livewire::test(ConsolidacionVacacionTable::class)
+        ->assertSet('sortDirection', 'desc')
+        ->assertSeeInOrder(['Tercera Consolidacion', 'Segunda Consolidacion', 'Primera Consolidacion']);
 });
 
 it('busca sin errores en las demas tablas', function (string $tabla) {

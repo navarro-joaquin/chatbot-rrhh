@@ -19,6 +19,13 @@ final class ConsolidacionVacacionTable extends PowerGridComponent
 
     public string $tableName = 'consolidacionVacacionTable';
 
+    /**
+     * Las consolidaciones más recientes primero.
+     */
+    public string $sortField = 'id';
+
+    public string $sortDirection = 'desc';
+
     public function boot(): void
     {
         config(['livewire-powergrid.filter' => 'outside']);
