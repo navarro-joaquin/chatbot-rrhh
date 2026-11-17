@@ -24,6 +24,7 @@ Route::middleware(['auth', 'verified', 'password.cambio'])->group(function () {
     Route::livewire('feriados', 'feriados')->name('feriados.index');
     Route::livewire('consolidacion-vacacion', 'consolidacion-vacacion')->name('consolidacion-vacacion.index');
     Route::livewire('reporte-historial-vacaciones', 'reporte-historial-vacaciones')->name('reportes.historial-vacaciones');
+    Route::livewire('reporte-contratos-por-vencer', 'reporte-contratos-por-vencer')->name('reportes.contratos-por-vencer');
 });
 
 require __DIR__.'/settings.php';

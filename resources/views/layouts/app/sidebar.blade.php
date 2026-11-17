@@ -69,6 +69,9 @@
                     <flux:sidebar.item icon="document-text" :href="route('reportes.historial-vacaciones')" :current="request()->routeIs('reportes.historial-vacaciones')" wire:navigate>
                         {{ __('Historial Vacaciones') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="calendar-days" :href="route('reportes.contratos-por-vencer')" :current="request()->routeIs('reportes.contratos-por-vencer')" wire:navigate>
+                        {{ __('Contratos por vencer') }}
+                    </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

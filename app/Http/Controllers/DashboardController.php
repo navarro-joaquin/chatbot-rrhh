@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Livewire\ContratoPorVencerTable;
 use App\Models\Compensacion;
 use App\Models\Empleado;
 use App\Models\EmpleadoContrato;
@@ -33,9 +34,7 @@ class DashboardController extends Controller
             ->count();
 
         $contratosPorVencer = EmpleadoContrato::query()->whereHas('empleado')
-            ->where('es_vigente', true)
-            ->whereNotNull('fecha_fin')
-            ->whereBetween('fecha_fin', [$today, $today->copy()->addDays(30)])
+            ->porVencer(30)
             ->count();
 
         $vacacionesQuery = Vacacion::query()->whereHas('empleado');
@@ -79,9 +78,7 @@ class DashboardController extends Controller
 
         $contratosProximosAVencer = EmpleadoContrato::query()->whereHas('empleado')
             ->with('empleado:id,nombre_completo')
-            ->where('es_vigente', true)
-            ->whereNotNull('fecha_fin')
-            ->whereBetween('fecha_fin', [$today, $today->copy()->addDays(60)])
+            ->porVencer(ContratoPorVencerTable::DIAS)
             ->orderBy('fecha_fin')
             ->limit(5)
             ->get();

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -29,6 +30,18 @@ class EmpleadoContrato extends BaseModel
             'fecha_fin' => 'date',
             'es_vigente' => 'boolean',
         ];
+    }
+
+    /**
+     * Contratos vigentes que vencen entre hoy y los próximos `$dias` días.
+     */
+    public function scopePorVencer(Builder $query, int $dias): void
+    {
+        $hoy = now()->startOfDay();
+
+        $query->where('es_vigente', true)
+            ->whereNotNull('fecha_fin')
+            ->whereBetween('fecha_fin', [$hoy, $hoy->copy()->addDays($dias)]);
     }
 
     public function empleado(): BelongsTo

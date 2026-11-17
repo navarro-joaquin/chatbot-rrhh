@@ -138,7 +138,7 @@
                         <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Contratos próximos a vencer</h2>
                         <p class="text-sm text-zinc-600 dark:text-zinc-300">Próximos 60 días</p>
                     </div>
-                    <a href="{{ route('empleados.index') }}" class="{{ $enlace }}">Revisar</a>
+                    <a href="{{ route('reportes.contratos-por-vencer') }}" class="{{ $enlace }}">Revisar</a>
                 </div>
 
                 <div class="space-y-2">
