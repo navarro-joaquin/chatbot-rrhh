@@ -85,6 +85,49 @@ Vacaciones:
 
 Compensaciones: igual, con `fecha_compensacion`, `horas_solicitadas`, `horas`, `minutos` y `texto`. El día equivale a 8 horas.
 
+### Usuarios
+
+```http
+GET /usuarios
+GET /usuarios/{id}
+POST /usuarios/verificar-credenciales
+```
+
+Usuarios que inician sesión en RR. HH. No se incluyen los usuarios técnicos del bot ni de la integración, y nunca se devuelven la contraseña ni los secretos de doble factor.
+
+Parámetros de `/usuarios`: `rol` (`administrador` o `rrhh`) y `per_page` (1 a 100, por defecto 50). Está paginado y ordenado por nombre.
+
+```json
+{
+  "id": 3,
+  "nombre": "Ana Perez",
+  "correo_electronico": "ana@example.com",
+  "rol": "rrhh",
+  "rol_texto": "Recursos Humanos",
+  "correo_verificado": true,
+  "doble_factor_habilitado": false,
+  "debe_cambiar_contrasena": false,
+  "fecha_registro": "2026-10-15T12:00:00.000000Z"
+}
+```
+
+#### Verificar credenciales
+
+Permite que la aplicación consumidora autentique a sus usuarios con el mismo correo y contraseña de RR. HH. No inicia sesión ni emite tokens: solo comprueba la contraseña y devuelve el usuario.
+
+```http
+POST /usuarios/verificar-credenciales
+Content-Type: application/json
+
+{ "email": "ana@example.com", "password": "..." }
+```
+
+- `200`: credenciales correctas; el cuerpo es `{ "data": <usuario> }` con el formato anterior.
+- `422`: correo o contraseña incorrectos (mismo mensaje en ambos casos), o campos faltantes.
+- `429`: 5 intentos fallidos seguidos para el mismo correo bloquean la verificación de ese correo durante 60 segundos.
+
+El correo no distingue mayúsculas. RR. HH. no aplica aquí el segundo factor: si `doble_factor_habilitado` es `true` o `debe_cambiar_contrasena` es `true`, la aplicación consumidora decide si permite el acceso. La contraseña solo debe enviarse por HTTPS y no debe guardarse en el sistema consumidor.
+
 ## Ejemplos de uso
 
 En los ejemplos, `https://rrhh.example.com` es la URL del sistema y `SECRETO` el valor de `RRHH_INTEGRACION_CLIENT_SECRET`.
@@ -217,5 +260,6 @@ while url:
 
 - `401`: token ausente o vencido, o credencial de servicio inválida.
 - `403`: el token no tiene la habilidad `integracion:read`.
-- `422`: parámetros inválidos; el cuerpo indica cuáles.
+- `422`: parámetros inválidos; el cuerpo indica cuáles. En `/usuarios/verificar-credenciales`, también credenciales incorrectas.
+- `429`: demasiadas peticiones o demasiados intentos fallidos de verificación de credenciales.
 - `503`: la emisión de tokens no está configurada o falta el usuario técnico.

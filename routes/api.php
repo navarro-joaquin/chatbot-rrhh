@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\Integracion\EmpleadoController as IntegracionEmplea
 use App\Http\Controllers\Api\Integracion\FeriadoController as IntegracionFeriadoController;
 use App\Http\Controllers\Api\Integracion\SolicitudController as IntegracionSolicitudController;
 use App\Http\Controllers\Api\Integracion\TokenController as IntegracionTokenController;
+use App\Http\Controllers\Api\Integracion\UsuarioController as IntegracionUsuarioController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('v1/bot/auth/token', [BotTokenController::class, 'store'])
@@ -32,4 +33,7 @@ Route::prefix('v1/integracion')
         Route::get('feriados', [IntegracionFeriadoController::class, 'index']);
         Route::get('solicitudes-vacaciones', [IntegracionSolicitudController::class, 'vacaciones']);
         Route::get('solicitudes-compensaciones', [IntegracionSolicitudController::class, 'compensaciones']);
+        Route::get('usuarios', [IntegracionUsuarioController::class, 'index']);
+        Route::get('usuarios/{usuario}', [IntegracionUsuarioController::class, 'show'])->whereNumber('usuario');
+        Route::post('usuarios/verificar-credenciales', [IntegracionUsuarioController::class, 'verificarCredenciales']);
     });
