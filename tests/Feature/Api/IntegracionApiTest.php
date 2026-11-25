@@ -170,3 +170,98 @@ it('crea el usuario tecnico de integracion una sola vez', function () {
 
     expect(User::where('email', 'integracion@internal.local')->count())->toBe(1);
 });
+
+it('lista usuarios sin datos sensibles y excluye los usuarios tecnicos', function () {
+    config([
+        'services.rrhh_bot.user_email' => 'bot@internal.local',
+        'services.rrhh_integracion.user_email' => 'integracion@internal.local',
+    ]);
+    User::factory()->create(['email' => 'bot@internal.local']);
+    Sanctum::actingAs(User::factory()->create(['email' => 'integracion@internal.local']), ['integracion:read']);
+
+    $ana = User::factory()->administrador()->create(['name' => 'Ana Admin', 'email' => 'ana@example.com']);
+    User::factory()->create(['name' => 'Beto RRHH', 'email' => 'beto@example.com']);
+
+    $this->getJson('/api/v1/integracion/usuarios')
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.nombre', 'Ana Admin')
+        ->assertJsonPath('data.0.correo_electronico', 'ana@example.com')
+        ->assertJsonPath('data.0.rol', 'administrador')
+        ->assertJsonPath('data.0.rol_texto', 'Administrador')
+        ->assertJsonMissingPath('data.0.password')
+        ->assertJsonMissingPath('data.0.two_factor_secret');
+
+    $this->getJson('/api/v1/integracion/usuarios?rol=rrhh')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.correo_electronico', 'beto@example.com');
+
+    $this->getJson("/api/v1/integracion/usuarios/{$ana->id}")
+        ->assertOk()
+        ->assertJsonPath('data.id', $ana->id);
+
+    $bot = User::query()->where('email', 'bot@internal.local')->firstOrFail();
+    $this->getJson("/api/v1/integracion/usuarios/{$bot->id}")->assertNotFound();
+
+    $this->getJson('/api/v1/integracion/usuarios?rol=otro')->assertUnprocessable();
+});
+
+it('verifica las credenciales de un usuario con la misma contrasena del sistema', function () {
+    autenticarIntegracion();
+    $usuario = User::factory()->create(['email' => 'ana@example.com', 'password' => 'Secreta123']);
+
+    $this->postJson('/api/v1/integracion/usuarios/verificar-credenciales', [
+        'email' => 'ANA@example.com',
+        'password' => 'Secreta123',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.id', $usuario->id)
+        ->assertJsonPath('data.correo_electronico', 'ana@example.com')
+        ->assertJsonMissingPath('data.password');
+
+    $this->postJson('/api/v1/integracion/usuarios/verificar-credenciales', [
+        'email' => 'ana@example.com',
+        'password' => 'incorrecta',
+    ])->assertUnprocessable()->assertJsonValidationErrors('email');
+
+    $this->postJson('/api/v1/integracion/usuarios/verificar-credenciales', [
+        'email' => 'nadie@example.com',
+        'password' => 'Secreta123',
+    ])->assertUnprocessable();
+
+    $this->postJson('/api/v1/integracion/usuarios/verificar-credenciales', [])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['email', 'password']);
+});
+
+it('no verifica credenciales de usuarios tecnicos ni sin token de integracion', function () {
+    config(['services.rrhh_integracion.user_email' => 'integracion@internal.local']);
+    User::factory()->create(['email' => 'integracion@internal.local', 'password' => 'Secreta123']);
+    $credenciales = ['email' => 'integracion@internal.local', 'password' => 'Secreta123'];
+
+    $this->postJson('/api/v1/integracion/usuarios/verificar-credenciales', $credenciales)->assertUnauthorized();
+
+    autenticarIntegracion('bot:read');
+    $this->postJson('/api/v1/integracion/usuarios/verificar-credenciales', $credenciales)->assertForbidden();
+
+    autenticarIntegracion();
+    $this->postJson('/api/v1/integracion/usuarios/verificar-credenciales', $credenciales)->assertUnprocessable();
+});
+
+it('bloquea la verificacion de credenciales tras varios intentos fallidos', function () {
+    autenticarIntegracion();
+    User::factory()->create(['email' => 'ana@example.com', 'password' => 'Secreta123']);
+
+    foreach (range(1, 5) as $intento) {
+        $this->postJson('/api/v1/integracion/usuarios/verificar-credenciales', [
+            'email' => 'ana@example.com',
+            'password' => 'incorrecta',
+        ])->assertUnprocessable();
+    }
+
+    $this->postJson('/api/v1/integracion/usuarios/verificar-credenciales', [
+        'email' => 'ana@example.com',
+        'password' => 'Secreta123',
+    ])->assertTooManyRequests();
+});
